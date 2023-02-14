@@ -1,8 +1,9 @@
 import numpy as np
 
-libname='gyrosynchrotron/Binaries/MWTransferArr64.dll' # имя исполняемой библиотеки - находится там, где Python может ее найти
+libname = 'gyrosynchrotron/Binaries/MWTransferArr64.dll' # имя исполняемой библиотеки - находится там, где Python сможет ее найти
 
-freqs=[4*1e9, 5*1e9, 6*1e9, 7*1e9, 8*1e9, 9*1e9, 10*1e9, 11*1e9, 12*1e9]
+# список частот, на которых происходит восстановление
+freqs=[4*1e9, 5*1e9, 6*1e9, 8*1e9, 9*1e9, 10*1e9, 11*1e9, 12*1e9]  
 
 Nf=1     # number of frequencies
 NSteps=1  # number of nodes along the line-of-sight
@@ -25,7 +26,7 @@ ParmLocal[0]=L/NSteps  # глубина вокселя, см
 ParmLocal[1]=1e7   # T_0, K
 ParmLocal[2]=3e9   # n_0 - тепловая электронная плотность, см^{-3}
 ParmLocal[3]=180   # B - магнитное поле, G
-ParmLocal[4]=80    # угол между В и лучом зрения
+ParmLocal[4]=80    #угол между В и лучом зрения
 ParmLocal[5]= 0 + 4
 ParmLocal[6]=3     # распределение по энергии (выбирается ЗАКОН LAW)
 ParmLocal[7]=1e6   # n_b - нетепловая электронная плотность, см^{-3}
@@ -37,7 +38,8 @@ ParmLocal[15]=70   # граница конуса потерь, градусы
 ParmLocal[16]=1  # \Delta\mu
 ParmLocal[22]=-1  # \Delta\mu
 
-indexes_of_recoverable_parameters = [2,3,4,7,12] 
-# indexes_of_recoverable_parameters = [3,4,12] 
-recoverable_parameters=np.zeros(len(indexes_of_recoverable_parameters), dtype='double')
-recoverable_parameters=ParmLocal[indexes_of_recoverable_parameters]
+# индексы восстанавливаемых параметров
+prs_indexes = [2,3,4,7,12] 
+# prs_indexes = [2,3,4] 
+refprs=np.zeros(len(prs_indexes), dtype='double')
+refprs=ParmLocal[prs_indexes]
