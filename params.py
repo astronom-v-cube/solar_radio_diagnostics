@@ -7,7 +7,7 @@ freqs=[4*1e9, 5*1e9, 6*1e9, 8*1e9, 9*1e9, 10*1e9, 11*1e9, 12*1e9]
 
 Nf=1     # number of frequencies
 NSteps=1  # number of nodes along the line-of-sight
- 
+
 Lparms=np.zeros(11, dtype='int32') # массив измерений и т.д.
 Lparms[0]=NSteps
 Lparms[1]=Nf
@@ -39,7 +39,8 @@ ParmLocal[16]=1  # \Delta\mu
 ParmLocal[22]=-1  # \Delta\mu
 
 # индексы восстанавливаемых параметров
-prs_indexes = [2,3,4,7,12] 
-# prs_indexes = [2,3,4] 
-refprs=np.zeros(len(prs_indexes), dtype='double')
-refprs=ParmLocal[prs_indexes]
+# recoverable_params_indexes = [2,3,4,7,12] 
+# recoverable_params_indexes = [1, 2, 3, 4, 7] 
+recoverable_params_indexes = [1, 2, 3, 4] 
+recoverable_params=np.zeros(len(recoverable_params_indexes), dtype='double')
+recoverable_params = ParmLocal[recoverable_params_indexes]

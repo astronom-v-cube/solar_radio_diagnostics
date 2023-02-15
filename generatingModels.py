@@ -25,13 +25,18 @@ class generatingModels:
         # массив для хранения найденных значений
         self.x0s = []
         
-    def generate(self, points):
+    def generate(self, points, method):
         filex = open(f'{self.fname}_gen{self.gen}_x.txt', 'a')
         filey = open(f'{self.fname}_gen{self.gen}_y.txt', 'a')
         filer = open(f'{self.fname}_gen{self.gen}_r.txt', 'a')
         # генерация координат
-        # (начальная точка, ширина, (количество точек, размерность))
-        x = np.random.normal(self.x0, self.sigma, (points, self.ndim))
+        if not method or method == 'gaussian':
+            # (начальная точка, ширина, (количество точек, размерность))
+            print('Нормальная')
+            x = np.random.normal(self.x0, self.sigma, (points, self.ndim))
+        elif method == 'random':
+            print('Случайная')
+            x = np.random.uniform(self.x0 - self.sigma, self.x0 + self.sigma, (points, self.ndim))
         # удаление отрицательных координат
         # ищем минимальную координату в каждом наборе координат
         mask = x.min(1) > 0
@@ -87,16 +92,16 @@ class generatingModels:
     
     # функция генерации
     # (количество поколений, количество потомков, коэфиициент изменения ширины генерации, количество точек на ребенка)
-    def Generating(self, ngenerations, nchildren, sigmacoeff, points, do_plot = False, refx = None):
+    def Generating(self, ngenerations, nchildren, sigmacoeff, points, method, do_plot = False, refx = None):
         # если еще нету нулевого поколения - генерируем точки и значения к ним
-        if not self.gen: self.generate(points * nchildren)
+        if not self.gen: self.generate(points * nchildren, method)
         # переменная счетчик
         gen = self.gen
         # цикл генерации n поколений
         # поколоние с которого начали генерировать - текущее поколение, нужно для генерации + поколений к расчитанным
 
         while self.gen-gen < ngenerations:
- # imins - массив индексов детей по возрастанию
+            # imins - массив индексов детей по возрастанию
             imins = self.getmins(nchildren)
             # все координаты в прошлой генерации
             all_x = self.get('x')
@@ -120,7 +125,7 @@ class generatingModels:
             for i, x in enumerate(xmins):
                 print(f'{self.gen}gen, {i}chld')
                 self.x0 = x
-                self.generate(points)
+                self.generate(points, method)
             # если включена отрисовка графика и есть более двух точек - рисуем
             if do_plot and self.gen > 1: self.plot(refx)
             # пишем что лучшее вышло на текущем шаге
