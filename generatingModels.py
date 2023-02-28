@@ -32,10 +32,9 @@ class generatingModels:
         # генерация координат
         if not method or method == 'gaussian':
             # (начальная точка, ширина, (количество точек, размерность))
-            print('Нормальная')
             x = np.random.normal(self.x0, self.sigma, (points, self.ndim))
+            # (точка слева, точка справа, (количество точек, размерность))
         elif method == 'random':
-            print('Случайная')
             x = np.random.uniform(self.x0 - self.sigma, self.x0 + self.sigma, (points, self.ndim))
         # удаление отрицательных координат
         # ищем минимальную координату в каждом наборе координат
@@ -131,7 +130,7 @@ class generatingModels:
             # пишем что лучшее вышло на текущем шаге
             print(self.get('x',self.getmins(1))[0])
             # небольшая передышка
-            time.sleep(2)
+            time.sleep(4)
 
         # результат для последнего поколения        
         self.x0 = self.get('x', self.getmins(1))[0]
