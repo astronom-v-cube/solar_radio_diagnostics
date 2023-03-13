@@ -33,18 +33,12 @@ class generatingModels:
         for i in recoverable_params_indexes:
             truths.append(ParmLocal[i])
         figure1 = plt.figure(figsize=(25, 25))
-        corner.corner(data=x, weights=(1/r).ravel(), titles=(r'$n_0, см^{-3}$', r'$B, Г$', r'$\theta, град$', r'$n_b, см^{-3}$'), show_titles=True, fig = figure1, truths = truths, title_fmt='.0f', plot_datapoints=False)
+        t = [item for item in limits_of_gen_ParmLocal if not (item[0] == 0 and item[1] == 0)]
+        print(t)
+        corner.corner(data=x, weights=(1/r).ravel(), titles=(r'$n_0, см^{-3}$', r'$B, Г$', r'$\theta, град$', r'$n_b, см^{-3}$'), fig = figure1, truths = truths, title_fmt=None, show_titles=True, range=[item for item in limits_of_gen_ParmLocal if item != (0.0, 0.0)])
+        # , plot_datapoints=False
         figure1.tight_layout()
         figure1.savefig(f'corner_plot_{number_of_gen}_gen.png')
-
-        # figure1 = plt.figure(figsize=(25, 25))
-        # names=(r'$n_0, см^{-3}$', r'$B, Г$', r'$\theta, град$', r'$n_b, см^{-3}$')
-        # grids = []
-        # N=x.shape[0]
-        # for i in range(N):
-        #     grids.append(np.linspace(x[i].min(), x[i].max(), 40))
-        # makeImages(x, r, np.arange(N), names, grids, r.max(), cube_sigma=1)
-        # figure1.savefig(f'corner_plot_{number_of_gen}_gen.png')
 
     def generate(self, points, method):
         filex = open(f'{self.fname}_gen{self.gen}_x.txt', 'a')
@@ -83,7 +77,7 @@ class generatingModels:
 
         x_additional = []
         # для всех точек по их количеству
-        for i in range(points//5):
+        for i in range(points//4):
             # массив второго уровня хранящий одну точку
             one_point = []
             # проходимся по индексам и берем границы генерации 
@@ -93,7 +87,7 @@ class generatingModels:
             x_additional.append(one_point)
         x_additional = np.array(x_additional)
         x = np.concatenate((x, x_additional), axis=0)
-        np.append(x, [6e+09, 1.80e+02, 8.0e+01, 1.e+06])
+        # np.append(x, [6e+09, 1.80e+02, 8.0e+01, 1.e+06])
         # удаление отрицательных координат
         # ищем отрицательную координату в каждом наборе координат
         mask = x.min(1) > 0
@@ -210,5 +204,5 @@ class generatingModels:
 
         # рисуем график
         if do_plot: self.plot(refx)
-        plt.show()
+        # plt.show()
                 
