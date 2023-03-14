@@ -3,10 +3,8 @@ import corner
 import matplotlib.pyplot as plt
 import time
 from params import ParmLocal, recoverable_params_indexes, limits_of_gen_ParmLocal
-from visual_corner import makeImages
-
 import matplotlib
-matplotlib.rcParams.update({'font.size': 20})
+matplotlib.rcParams.update({'font.size': 25})
 
 class generatingModels:
     #calcfunc(x), x=[x0,x1,x2,...,x(dim-1)]
@@ -29,13 +27,20 @@ class generatingModels:
         self.x0s = []
         
     def corner_plot(self, x, r, number_of_gen):
+
+        # получение координат истинной точки для отображения
         truths = []
         for i in recoverable_params_indexes:
             truths.append(ParmLocal[i])
+        # получение интервалов генерации точек для отображения
+        ranges = []
+        for i in recoverable_params_indexes:
+            ranges.append(limits_of_gen_ParmLocal[i]) 
+        print(ranges)      
+
         figure1 = plt.figure(figsize=(25, 25))
-        t = [item for item in limits_of_gen_ParmLocal if not (item[0] == 0 and item[1] == 0)]
-        print(t)
-        corner.corner(data=x, weights=(1/r).ravel(), titles=(r'$n_0, см^{-3}$', r'$B, Г$', r'$\theta, град$', r'$n_b, см^{-3}$'), fig = figure1, truths = truths, title_fmt=None, show_titles=True, range=[item for item in limits_of_gen_ParmLocal if item != (0.0, 0.0)])
+        corner.corner(data=x, weights=(1/r).ravel(), titles=(r'$n_0, см^{-3}$', r'$B, Г$', r'$\theta, град$', r'$n_b, см^{-3}$'), fig = figure1, truths = truths, title_fmt=None, show_titles=True)
+        # , range=ranges
         # , plot_datapoints=False
         figure1.tight_layout()
         figure1.savefig(f'corner_plot_{number_of_gen}_gen.png')
@@ -112,7 +117,6 @@ class generatingModels:
         filey.close()
         filer.close()
 
-
     # n - количество точек, находит индексы n минимальных
     def getmins(self, n):
         r = np.loadtxt(f'{self.fname}_gen{self.gen}_r.txt')
@@ -144,7 +148,8 @@ class generatingModels:
         plt.legend()
         # plt.ylim(1e-6, 1e1)
         plt.tight_layout()
-        plt.pause(1)
+        plt.savefig('errors.png')
+        # plt.pause(1)
     
     # функция генерации
     # (количество поколений, количество потомков, коэфиициент изменения ширины генерации, количество точек на ребенка)

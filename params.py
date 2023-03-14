@@ -41,6 +41,6 @@ ParmLocal[22]=-1  # \Delta\mu
 # индексы восстанавливаемых параметров
 # recoverable_params_indexes = [2,3,4,7,12] 
 # recoverable_params_indexes = [1, 2, 3, 4, 7] 
-recoverable_params_indexes = [1, 2, 3, 4] 
+recoverable_params_indexes = [1, 2, 3, 7] 
 recoverable_params=np.zeros(len(recoverable_params_indexes), dtype='double')
 recoverable_params = ParmLocal[recoverable_params_indexes]
