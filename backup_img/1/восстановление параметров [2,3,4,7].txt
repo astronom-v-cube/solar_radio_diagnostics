@@ -1,0 +1,21 @@
+восстановление параметров [2,3,4,7]
+модель :
+ParmLocal[1]=1e7   # T_0, K
+ParmLocal[2]=6e9   # n_0 - тепловая электронная плотность, см^{-3}
+ParmLocal[3]=180   # B - магнитное поле, G
+ParmLocal[4]=80    #угол между В и лучом зрения
+ParmLocal[5]= 0 + 4
+ParmLocal[6]=3     # распределение по энергии (выбирается ЗАКОН LAW)
+ParmLocal[7]=1e6   # n_b - нетепловая электронная плотность, см^{-3}
+ParmLocal[9]=0.03   # E_min, MeV
+ParmLocal[10]=10.0 # E_max, MeV
+ParmLocal[12]=4.0  # \delta_1
+ParmLocal[14]=3    # # распределение по питч-углу (выбирается GLC)
+ParmLocal[15]=70   # граница конуса потерь, градусы
+ParmLocal[16]=1  # \Delta\mu
+ParmLocal[22]=-1  # \Delta\mu
+
+gen.Generating(ngenerations=5, nchildren=100, sigmacoeff=2, points=2**11, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
+print(gen.x0)
+подписи корнера неверны
+генерация сначала по интервалу, потом гауссом

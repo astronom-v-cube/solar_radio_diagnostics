@@ -62,7 +62,7 @@ gen = generatingModels(func_multythread, minimizer, dimensions = n, fname = 'dat
 # gen.sigma = gen.x0 * 0.85
 
 # сумарно будет насчитано points * nchildren * ngen
-gen.Generating(ngenerations=5, nchildren=100, sigmacoeff=2, points=2**11, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
+gen.Generating(ngenerations=10, nchildren=40, sigmacoeff=3, points=2**12, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
 print(gen.x0)
 
 # gen.plot(recoverable_params)

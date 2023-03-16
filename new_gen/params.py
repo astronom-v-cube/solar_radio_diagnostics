@@ -54,8 +54,24 @@ limits_of_gen_ParmLocal[15]=(0, 360)   # граница конуса потер�
 # limits_of_gen_ParmLocal[16]=1  # \Delta\mu
 # limits_of_gen_ParmLocal[22]=-1  # \Delta\mu
 
+names_of_ParmLocal = [''] * 24
+names_of_ParmLocal[1]=r'$T_0, K$'
+names_of_ParmLocal[2]=r'$n_0, sm^{-3}$'
+names_of_ParmLocal[3]=r'$B, G$'
+names_of_ParmLocal[4]=r'$\theta, grad$'
+# names_of_ParmLocal[5]= 0 + 4
+# names_of_ParmLocal[6]=3     # распределение по энергии (выбирается ЗАКОН LAW)
+names_of_ParmLocal[7]=r'$n_b, sm^{-3}$'
+# names_of_ParmLocal[9]=r'$E_min, MeV$'
+# names_of_ParmLocal[10]=r'$E_max, MeV$'
+names_of_ParmLocal[12]=r'$\delta_1$'
+# names_of_ParmLocal[14]=3    # # распределение по питч-углу (выбирается GLC)
+names_of_ParmLocal[15]=r'$theta_2$'   # граница конуса потерь, градусы
+# names_of_ParmLocal[16]=1  # \Delta\mu
+# names_of_ParmLocal[22]=-1  # \Delta\mu
+
 # индексы восстанавливаемых параметров
-recoverable_params_indexes = [2,3,4,7] 
+recoverable_params_indexes = [1,2,4,3,7] 
 # recoverable_params_indexes = [1, 2, 3, 4, 7] 
 # recoverable_params_indexes = [1, 2, 3, 4] 
 recoverable_params=np.zeros(len(recoverable_params_indexes), dtype='double')

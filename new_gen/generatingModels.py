@@ -2,7 +2,7 @@ import numpy as np
 import corner
 import matplotlib.pyplot as plt
 import time
-from params import ParmLocal, recoverable_params_indexes, limits_of_gen_ParmLocal
+from params import ParmLocal, recoverable_params_indexes, limits_of_gen_ParmLocal, names_of_ParmLocal
 import matplotlib
 matplotlib.rcParams.update({'font.size': 25})
 
@@ -26,8 +26,7 @@ class generatingModels:
         # массив для хранения найденных значений
         self.x0s = []
         
-    def corner_plot(self, x, r, number_of_gen):
-
+    def corner_plot(self, x, r, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
         # получение координат истинной точки для отображения
         truths = []
         for i in recoverable_params_indexes:
@@ -36,14 +35,16 @@ class generatingModels:
         ranges = []
         for i in recoverable_params_indexes:
             ranges.append(limits_of_gen_ParmLocal[i]) 
-        print(ranges)      
-
-        figure1 = plt.figure(figsize=(25, 25))
-        corner.corner(data=x, weights=(1/r).ravel(), titles=(r'$n_0, см^{-3}$', r'$B, Г$', r'$\theta, град$', r'$n_b, см^{-3}$'), fig = figure1, truths = truths, title_fmt=None, show_titles=True)
+        print(ranges)    
+        titles = []
+        for i in recoverable_params_indexes:
+            titles.append(names_of_ParmLocal[i]) 
+        corner_figure = plt.figure(figsize=(25, 25))
+        corner.corner(data=x, weights=(1/r).ravel(), titles=titles, fig = corner_figure, truths = truths, title_fmt=None, show_titles=True, range=[(1000000, 1e+08), (3e+08, 7e+09), (0, 360), (0, 1000), (100000, 10000000)])
         # , range=ranges
         # , plot_datapoints=False
-        figure1.tight_layout()
-        figure1.savefig(f'corner_plot_{number_of_gen}_gen.png')
+        corner_figure.tight_layout()
+        corner_figure.savefig(f'corner_plot_{number_of_gen}_gen_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
 
     def generate(self, points, method):
         filex = open(f'{self.fname}_gen{self.gen}_x.txt', 'a')
@@ -132,7 +133,7 @@ class generatingModels:
         # расчет относительной ошибки
         deltarefrerence = np.array(self.x0s) - refx
         # отрисовка
-        plt.figure(1, figsize = (12,8))
+        plt.figure(figsize = (30, 16))
         plt.cla()
         plt.yscale('log')
         plt.grid(True, which="both", linestyle='--')
@@ -143,12 +144,12 @@ class generatingModels:
 
         for i, err in enumerate(deltarefrerence.T):
             plt.plot(np.abs(err/refx[i]), label = f"параметр {i+1}")
-        plt.xlabel("Поколение", fontsize=20)
-        plt.ylabel("Относительная ошибка", fontsize=20)
+        plt.xlabel("Поколение", fontsize=28)
+        plt.ylabel("Относительная ошибка", fontsize=28)
         plt.legend()
-        # plt.ylim(1e-6, 1e1)
+        plt.ylim(1e-6, 1e1)
         plt.tight_layout()
-        plt.savefig('errors.png')
+        plt.savefig('error_rate.png')
         # plt.pause(1)
     
     # функция генерации
@@ -157,7 +158,7 @@ class generatingModels:
         # если еще нету нулевого поколения - генерируем точки и значения к ним
         if not self.gen: 
             self.generate(points * nchildren, method)
-            self.corner_plot(self.x, self.r, 0)
+            self.corner_plot(self.x, self.r, 0, ngenerations, nchildren, sigmacoeff, points, method)
             
         # переменная счетчик
         gen = self.gen
@@ -190,7 +191,7 @@ class generatingModels:
                 print(f'{self.gen} gen, {i + 1} chld')
                 self.x0 = x
                 self.generate(points, method = 'gaussian')
-            self.corner_plot(self.x, self.r, self.gen)
+            self.corner_plot(self.x, self.r, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
 
             # если включена отрисовка графика и есть более двух точек - рисуем
             if do_plot and self.gen > 1: self.plot(refx)
