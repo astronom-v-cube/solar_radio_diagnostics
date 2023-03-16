@@ -25,7 +25,7 @@ def func_multythread(prs):
     # определяем число потоков и осталяем один свободным для возможности работать
     num_of_cpu = multiprocessing.cpu_count()
     y = np.zeros((prs.shape[1], len(freqs)*2))
-    with ThreadPoolExecutor(max_workers = num_of_cpu - 1) as executor:
+    with ThreadPoolExecutor(max_workers = num_of_cpu - 2) as executor:
         futures = []
         for i in range(prs.shape[1]):
             futures.append(executor.submit(sub, prs[:,i], i))
@@ -50,19 +50,19 @@ n = len(recoverable_params_indexes)
 gen = generatingModels(func_multythread, minimizer, dimensions = n, fname = 'dats/dat')
 
 #чтоб не комментить каждый раз лишние параметры
-try:
-    gen.x0[0] = 2e7   # T_0, K
-    gen.x0[1] = 5e9   # n_0 - тепловая электронная плотность, см^{-3}
-    gen.x0[2] = 320   # B - магнитное поле, G
-    gen.x0[3] = 170    # угол между В и лучом зрения
-    # gen.x0[4] = 4e5   # n_b - нетепловая электронная плотность, см^{-3}
-except: pass
+# try:
+#     gen.x0[0] = 2e7   # T_0, K
+#     gen.x0[1] = 5e9   # n_0 - тепловая электронная плотность, см^{-3}
+#     gen.x0[2] = 320   # B - магнитное поле, G
+#     gen.x0[3] = 170    # угол между В и лучом зрения
+#     # gen.x0[4] = 4e5   # n_b - нетепловая электронная плотность, см^{-3}
+# except: pass
 
 # ширина генерации
-gen.sigma = gen.x0 * 0.85
+# gen.sigma = gen.x0 * 0.85
 
 # сумарно будет насчитано points * nchildren * ngen
-gen.Generating(ngenerations=5, nchildren=50, sigmacoeff=2, points=2**14, method='gaussian', do_plot = True, refx = recoverable_params)
+gen.Generating(ngenerations=10, nchildren=40, sigmacoeff=3, points=2**12, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
 print(gen.x0)
 
 # gen.plot(recoverable_params)
