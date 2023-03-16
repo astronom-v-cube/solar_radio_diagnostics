@@ -40,11 +40,11 @@ class generatingModels:
         for i in recoverable_params_indexes:
             titles.append(names_of_ParmLocal[i]) 
         corner_figure = plt.figure(figsize=(25, 25))
-        corner.corner(data = x, weights = (1/r).ravel(), titles = titles, fig = corner_figure, truths = truths, title_fmt=None, show_titles = True, range = [(1000000, 1e+08), (3e+08, 7e+09), (0, 360), (0, 1000), (100000, 10000000)]) 
-        # , range=ranges
+        corner.corner(data = x, weights = (1/r).ravel(), titles = titles, fig = corner_figure, truths = truths, title_fmt=None, show_titles = True) 
+        # , range=ranges    [(1000000, 1e+08), (3e+08, 7e+09), (0, 360), (0, 1000), (100000, 10000000)]
         # , plot_datapoints=False
         corner_figure.tight_layout()
-        corner_figure.savefig(f'corner_plot_{number_of_gen}_gen_$_freqs = {freqs}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
+        corner_figure.savefig(f'corner_plot_{number_of_gen}_gen_$_len.freqs = {len(freqs)}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
 
     def generate(self, points, method):
         filex = open(f'{self.fname}_gen{self.gen}_x.txt', 'a')
@@ -100,7 +100,6 @@ class generatingModels:
         # удаление из массива точек с отрицательными координатами
         x = x[mask]
         self.x = x
-        print(self.x.shape)
         # транспонируем - так удобнее потом
         y = self.func(x.T)
         self.y = y
@@ -129,7 +128,7 @@ class generatingModels:
         # если индексы заданы возвращает по ним
         return np.loadtxt(f'{self.fname}_gen{self.gen}_{ax}.txt')[indexes]
     
-    def plot(self, refx, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
+    def plot_error_rate(self, refx, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
         # расчет относительной ошибки
         deltarefrerence = np.array(self.x0s) - refx
         # отрисовка
@@ -149,8 +148,26 @@ class generatingModels:
         plt.legend()
         plt.ylim(1e-4, 1e1)
         plt.tight_layout()
-        plt.savefig(f'error_rate{number_of_gen}_gen_$_freqs = {freqs}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
-        # plt.pause(1)
+        plt.savefig(f'error_rate_{number_of_gen}_gen_$_freqs = {freqs}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
+
+    # def plot_spectrum(self, refx, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
+    #     # отрисовка
+    #     plt.figure(figsize = (30, 16))
+    #     plt.cla()
+    #     plt.yscale('log')
+    #     plt.grid(True, which="both", linestyle='--')
+
+    #     # list_params = [r'$n_0$', r'$B$', r'$\theta$', r'$n_e$', r'$\delta_1$']
+    #     # for i, err in enumerate(deltarefrerence.T):
+    #     #     plt.plot(np.abs(err/refx[i]), label = f"Параметр {i+1} - {list_params[i]}")
+
+    #     for i, err in enumerate(deltarefrerence.T):
+    #         plt.plot(np.abs(err/refx[i]), label = f"параметр {i+1}", linewidth = 4)
+    #     plt.xlabel("Поколение", fontsize=28)
+    #     plt.ylabel("Относительная ошибка", fontsize=28)
+    #     plt.legend()
+    #     plt.tight_layout()
+    #     plt.savefig(f'spectrum_{number_of_gen}_gen_$_freqs = {freqs}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
     
     # функция генерации
     # (количество поколений, количество потомков, коэфиициент изменения ширины генерации, количество точек на ребенка)
@@ -194,9 +211,9 @@ class generatingModels:
             self.corner_plot(self.x, self.r, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
 
             # если включена отрисовка графика и есть более двух точек - рисуем
-            if do_plot and self.gen > 1: self.plot(refx)
+            if do_plot and self.gen > 1: self.plot_error_rate(refx, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
             # пишем что лучшее вышло на текущем шаге
-            print(self.get('x',self.getmins(1))[0])
+            print(self.get('x', self.getmins(1))[0])
             # небольшая передышка
             time.sleep(4)
 
@@ -209,6 +226,6 @@ class generatingModels:
         print(f'ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}')
 
         # рисуем график
-        if do_plot: self.plot(refx)
+        if do_plot: self.plot_error_rate(refx, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
         # plt.show()
                 

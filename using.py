@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import shutil
 import numpy as np
 import os
+from tqdm import tqdm
 
 RL_reference = Calc_I(freqs, recoverable_params, recoverable_params_indexes, ParmLocal, Lparms, Rparms, NSteps, Nf)
 reference = RL_reference[:,5:].ravel()
@@ -29,7 +30,7 @@ def func_multythread(prs):
         futures = []
         for i in range(prs.shape[1]):
             futures.append(executor.submit(sub, prs[:,i], i))
-        for future in as_completed(futures):
+        for future in tqdm(as_completed(futures), total=len(futures)):
             ret, i = future.result()
             y[i] = ret
     return y
@@ -62,7 +63,7 @@ gen = generatingModels(func_multythread, minimizer, dimensions = n, fname = 'dat
 # gen.sigma = gen.x0 * 0.85
 
 # сумарно будет насчитано points * nchildren * ngen
-gen.Generating(ngenerations=10, nchildren=40, sigmacoeff=3, points=2**12, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
+gen.Generating(ngenerations=0, nchildren=50, sigmacoeff=2, points=2**13, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
 print(gen.x0)
 
 # gen.plot(recoverable_params)
