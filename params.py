@@ -71,6 +71,7 @@ names_of_ParmLocal[15]=r'$theta_2$'   # граница конуса потерь
 # names_of_ParmLocal[22]=-1  # \Delta\mu
 
 # индексы восстанавливаемых параметров
-recoverable_params_indexes = [2, 3, 4, 7, 12] 
+# [12, 2], [12, 3], [12, 4], [12, 7], [2, 3], [2, 4], [2, 7], [3, 4], [4, 7], [3, 7]
+recoverable_params_indexes = [3, 7] 
 recoverable_params=np.zeros(len(recoverable_params_indexes), dtype='double')
 recoverable_params = ParmLocal[recoverable_params_indexes]

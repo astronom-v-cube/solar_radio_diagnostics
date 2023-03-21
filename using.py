@@ -63,24 +63,19 @@ gen = generatingModels(func_multythread, minimizer, dimensions = n, fname = 'dat
 # gen.sigma = gen.x0 * 0.85
 
 # сумарно будет насчитано points * nchildren * ngen
-for i in [0.5, 1, 2, 3, 4, 6, 10]:
-    try:
-        os.mkdir('dats')
-    except:
-        shutil.rmtree('dats')
-        os.mkdir('dats')
-    gen = generatingModels(func_multythread, minimizer, dimensions = n, fname = 'dats/dat')
-    gen.Generating(ngenerations=0, nchildren=50, sigmacoeff=i, points=2**12, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
-print(gen.x0)
-
-# for number, i in enumerate([[12, 2], [12, 3], [12, 4], [12, 7], [2, 3], [2, 4], [2, 7], [3, 4], [4, 7], [3, 7]]):
+# for i in [0.5, 1, 2, 3, 4, 6, 10]:
 #     try:
 #         os.mkdir('dats')
 #     except:
 #         shutil.rmtree('dats')
 #         os.mkdir('dats')
 #     gen = generatingModels(func_multythread, minimizer, dimensions = n, fname = 'dats/dat')
-#     gen.Generating(ngenerations=0, nchildren=25, sigmacoeff=5, points=2**7, number = number, method='new_random_first_gen', do_plot = True, refx = i)
+#     gen.Generating(ngenerations=0, nchildren=50, sigmacoeff=i, points=2**12, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
+# print(gen.x0)
+
+gen.Generating(ngenerations=0, nchildren=15, sigmacoeff=4, points=2**12, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
+print(gen.x0)
+
 
 # gen.plot(recoverable_params)
 # сохранение графика
