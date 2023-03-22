@@ -152,24 +152,26 @@ class generatingModels:
         plt.tight_layout()
         plt.savefig(f'error_rate_{number_of_gen}_gen_$_freqs = {freqs}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
 
-    # def plot_spectrum(self, refx, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
-    #     # отрисовка
-    #     plt.figure(figsize = (30, 16))
-    #     plt.cla()
-    #     plt.yscale('log')
-    #     plt.grid(True, which="both", linestyle='--')
+    def plot_spectrum(self, L, R, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
+        # отрисовка
+        fig, axs = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(30, 16))
+        plt.cla()
+        plt.grid(True, which="both", linestyle='--')
 
-    #     # list_params = [r'$n_0$', r'$B$', r'$\theta$', r'$n_e$', r'$\delta_1$']
-    #     # for i, err in enumerate(deltarefrerence.T):
-    #     #     plt.plot(np.abs(err/refx[i]), label = f"Параметр {i+1} - {list_params[i]}")
+        # list_params = [r'$n_0$', r'$B$', r'$\theta$', r'$n_e$', r'$\delta_1$']
+        # for i, err in enumerate(deltarefrerence.T):
+        #     plt.plot(np.abs(err/refx[i]), label = f"Параметр {i+1} - {list_params[i]}")
 
-    #     for i, err in enumerate(deltarefrerence.T):
-    #         plt.plot(np.abs(err/refx[i]), label = f"параметр {i+1}", linewidth = 4)
-    #     plt.xlabel("Поколение", fontsize=28)
-    #     plt.ylabel("Относительная ошибка", fontsize=28)
-    #     plt.legend()
-    #     plt.tight_layout()
-    #     plt.savefig(f'spectrum_{number_of_gen}_gen_$_freqs = {freqs}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
+        for i, intensivity_L in enumerate(L):
+            axs[0].plot(intensivity_L, label = f"Спектр на поколении {i+1}", linewidth = 5*(i+1)*0.3)
+        
+        for i, intensivity_R in enumerate(R):
+            axs[1].plot(intensivity_R, label = f"Спектр на поколении {i+1}", linewidth = 5*(i+1)*0.3)
+        # plt.xlabel("Поколение", fontsize=28)
+        # plt.ylabel("Относительная ошибка", fontsize=28)
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(f'spectrum_{number_of_gen}_gen_$_freqs = {len(freqs)}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
     
     # функция генерации
     # (количество поколений, количество потомков, коэфиициент изменения ширины генерации, количество точек на ребенка)
@@ -183,6 +185,8 @@ class generatingModels:
         gen = self.gen
         # цикл генерации n поколений
         # поколоние с которого начали генерировать - текущее поколение, нужно для генерации + поколений к расчитанным
+
+        spectrum_L, spectrum_R = [], []
 
         while self.gen-gen < ngenerations:
             # imins - массив индексов детей по возрастанию
@@ -200,7 +204,7 @@ class generatingModels:
                 # ну тут первая точка - сама точка, поэтому и расстояние до нее 0, поэтому берем вторую точку
                 deltas[i] = np.abs(all_x[xr.argsort()[1]]-x) 
             # увеличиваем счетчик поколений
-            self.gen+=1
+            self.gen += 1
             # записываем искаемые параметры на этом поколении
             self.x0s.append(xmins[0])
             # расчет новой сигмы - усредненная близость по каждому из параметров к другим точкам с меньшим функционалам * на некий sigmacoeff
@@ -213,9 +217,13 @@ class generatingModels:
             self.corner_plot(self.x, self.r, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
 
             # если включена отрисовка графика и есть более двух точек - рисуем
-            if do_plot and self.gen > 1: self.plot_error_rate(refx, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
+            if do_plot and self.gen > 1: 
+                self.plot_error_rate(refx, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
+                self.plot_spectrum(spectrum_L, spectrum_R, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
             # пишем что лучшее вышло на текущем шаге
             print(self.get('x', self.getmins(1))[0])
+            spectrum_L.append(list(self.get('y', self.getmins(1))[0][0::2]))
+            spectrum_R.append(list(self.get('y', self.getmins(1))[0][1::2]))
             # небольшая передышка
             time.sleep(4)
 
@@ -225,6 +233,8 @@ class generatingModels:
 
         # пишем лучшее, что получилось
         print(self.x0)
+        print(spectrum_R)
+        print(spectrum_L)
         print(f'ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}')
 
         # рисуем график
