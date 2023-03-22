@@ -2,7 +2,8 @@ import numpy as np
 import corner
 import matplotlib.pyplot as plt
 import time
-from params import freqs, ParmLocal, recoverable_params_indexes, limits_of_gen_ParmLocal, names_of_ParmLocal
+from params import freqs, ParmLocal, Lparms, Rparms, NSteps, Nf, recoverable_params,  recoverable_params_indexes, limits_of_gen_ParmLocal, names_of_ParmLocal
+from utils import Calc_I
 import matplotlib
 matplotlib.rcParams.update({'font.size': 25})
 
@@ -152,24 +153,33 @@ class generatingModels:
         plt.tight_layout()
         plt.savefig(f'error_rate_{number_of_gen}_gen_$_freqs = {freqs}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
 
-    def plot_spectrum(self, L, R, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
+    def plot_spectrum(self, L, R, freqs, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
+
+        model_spectrum = Calc_I(freqs, recoverable_params, recoverable_params_indexes, ParmLocal, Lparms, Rparms, NSteps, Nf)[:,5:].ravel()
+        print(model_spectrum)
+
         # отрисовка
         fig, axs = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(30, 16))
-        plt.cla()
-        plt.grid(True, which="both", linestyle='--')
+        axs[0].grid(True, which="both", linestyle='--')
+        axs[1].grid(True, which="both", linestyle='--')
+        axs[0].plot(freqs, model_spectrum[0::2], label = f"Реальный спектр", linewidth = 6, linestyle = ':', color = 'darkblue')
+        axs[1].plot(freqs, model_spectrum[1::2], label = f"Реальный спектр", linewidth = 6, linestyle = ':', color = 'darkblue')
 
         # list_params = [r'$n_0$', r'$B$', r'$\theta$', r'$n_e$', r'$\delta_1$']
         # for i, err in enumerate(deltarefrerence.T):
         #     plt.plot(np.abs(err/refx[i]), label = f"Параметр {i+1} - {list_params[i]}")
 
         for i, intensivity_L in enumerate(L):
-            axs[0].plot(intensivity_L, label = f"Спектр на поколении {i+1}", linewidth = 5*(i+1)*0.3)
-        
+            axs[0].plot(freqs, intensivity_L, label = f"Спектр на поколении {i+1}", linewidth = 5*(i+1)*0.3)
         for i, intensivity_R in enumerate(R):
-            axs[1].plot(intensivity_R, label = f"Спектр на поколении {i+1}", linewidth = 5*(i+1)*0.3)
-        # plt.xlabel("Поколение", fontsize=28)
-        # plt.ylabel("Относительная ошибка", fontsize=28)
-        plt.legend()
+            axs[1].plot(freqs, intensivity_R, label = f"Спектр на поколении {i+1}", linewidth = 5*(i+1)*0.3)
+        axs[0].set_xlabel("Частота", fontsize=28)
+        axs[1].set_xlabel("Частота", fontsize=28)
+        axs[0].set_title("Левая поляризация", fontsize=28)
+        axs[1].set_title("Правая поляризация", fontsize=28)
+        axs[0].set_ylabel(r"Интенсивность, $sfu$", fontsize=28)
+        axs[0].legend()
+        axs[1].legend()
         plt.tight_layout()
         plt.savefig(f'spectrum_{number_of_gen}_gen_$_freqs = {len(freqs)}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
     
@@ -219,7 +229,7 @@ class generatingModels:
             # если включена отрисовка графика и есть более двух точек - рисуем
             if do_plot and self.gen > 1: 
                 self.plot_error_rate(refx, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
-                self.plot_spectrum(spectrum_L, spectrum_R, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
+                self.plot_spectrum(spectrum_L, spectrum_R, freqs, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
             # пишем что лучшее вышло на текущем шаге
             print(self.get('x', self.getmins(1))[0])
             spectrum_L.append(list(self.get('y', self.getmins(1))[0][0::2]))
