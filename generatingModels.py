@@ -74,6 +74,9 @@ class generatingModels:
                 # проходимся по индексам и берем границы генерации 
                 for k in recoverable_params_indexes:
                     num = np.random.uniform(limits_of_gen_ParmLocal[k][0], limits_of_gen_ParmLocal[k][1])
+                    # num_1 = np.random.uniform(limits_of_gen_ParmLocal[k][0], limits_of_gen_ParmLocal[k][1])
+                    # num_2 = None
+                    # np.random.randint(2, 8)
                     one_point.append(num)
                 x.append(one_point)
             x = np.array(x)
@@ -149,22 +152,17 @@ class generatingModels:
         plt.xlabel("Поколение", fontsize=28)
         plt.ylabel("Относительная ошибка", fontsize=28)
         plt.legend()
-        plt.ylim(1e-4, 1e1)
+        # plt.ylim(1e-4, 1e1)
         plt.tight_layout()
-        plt.savefig(f'error_rate_{number_of_gen}_gen_$_freqs = {freqs}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
+        plt.savefig(f'error_rate_{number_of_gen}_gen_$_freqs = {len(freqs)}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
 
     def plot_spectrum(self, L, R, freqs, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
-
+        # подсчет спектра по модели
         model_spectrum = Calc_I(freqs, recoverable_params, recoverable_params_indexes, ParmLocal, Lparms, Rparms, NSteps, Nf)[:,5:].ravel()
-        print(model_spectrum)
-
         # отрисовка
         fig, axs = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(30, 16))
         axs[0].grid(True, which="both", linestyle='--')
         axs[1].grid(True, which="both", linestyle='--')
-        axs[0].plot(freqs, model_spectrum[0::2], label = f"Реальный спектр", linewidth = 6, linestyle = ':', color = 'darkblue')
-        axs[1].plot(freqs, model_spectrum[1::2], label = f"Реальный спектр", linewidth = 6, linestyle = ':', color = 'darkblue')
-
         # list_params = [r'$n_0$', r'$B$', r'$\theta$', r'$n_e$', r'$\delta_1$']
         # for i, err in enumerate(deltarefrerence.T):
         #     plt.plot(np.abs(err/refx[i]), label = f"Параметр {i+1} - {list_params[i]}")
@@ -173,6 +171,8 @@ class generatingModels:
             axs[0].plot(freqs, intensivity_L, label = f"Спектр на поколении {i+1}", linewidth = 5*(i+1)*0.3)
         for i, intensivity_R in enumerate(R):
             axs[1].plot(freqs, intensivity_R, label = f"Спектр на поколении {i+1}", linewidth = 5*(i+1)*0.3)
+        axs[0].plot(freqs, model_spectrum[0::2], label = f"Реальный спектр", linewidth = 8, linestyle = ':', color = 'darkblue')
+        axs[1].plot(freqs, model_spectrum[1::2], label = f"Реальный спектр", linewidth = 8, linestyle = ':', color = 'darkblue')
         axs[0].set_xlabel("Частота", fontsize=28)
         axs[1].set_xlabel("Частота", fontsize=28)
         axs[0].set_title("Левая поляризация", fontsize=28)
@@ -186,17 +186,21 @@ class generatingModels:
     # функция генерации
     # (количество поколений, количество потомков, коэфиициент изменения ширины генерации, количество точек на ребенка)
     def Generating(self, ngenerations, nchildren, sigmacoeff, points, method, do_plot = False, refx = None, number = None):
+
+        spectrum_L, spectrum_R = [], []
+
         # если еще нету нулевого поколения - генерируем точки и значения к ним
         if not self.gen: 
             self.generate(points * nchildren, method)
             self.corner_plot(self.x, self.r, 0, ngenerations, nchildren, sigmacoeff, points, method)
+            spectrum_L.append(list(self.get('y', self.getmins(1))[0][0::2]))
+            spectrum_R.append(list(self.get('y', self.getmins(1))[0][1::2]))
+            self.plot_spectrum(spectrum_L, spectrum_R, freqs, self.gen + 1, ngenerations, nchildren, sigmacoeff, points, method)
             
         # переменная счетчик
         gen = self.gen
         # цикл генерации n поколений
         # поколоние с которого начали генерировать - текущее поколение, нужно для генерации + поколений к расчитанным
-
-        spectrum_L, spectrum_R = [], []
 
         while self.gen-gen < ngenerations:
             # imins - массив индексов детей по возрастанию
@@ -232,6 +236,7 @@ class generatingModels:
                 self.plot_spectrum(spectrum_L, spectrum_R, freqs, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
             # пишем что лучшее вышло на текущем шаге
             print(self.get('x', self.getmins(1))[0])
+            # сохраняем информацию о восстановленном спектре для анализа
             spectrum_L.append(list(self.get('y', self.getmins(1))[0][0::2]))
             spectrum_R.append(list(self.get('y', self.getmins(1))[0][1::2]))
             # небольшая передышка
@@ -243,8 +248,6 @@ class generatingModels:
 
         # пишем лучшее, что получилось
         print(self.x0)
-        print(spectrum_R)
-        print(spectrum_L)
         print(f'ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}')
 
         # рисуем график

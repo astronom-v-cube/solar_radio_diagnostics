@@ -73,7 +73,7 @@ gen = generatingModels(func_multythread, minimizer, dimensions = n, fname = 'dat
 #     gen.Generating(ngenerations=0, nchildren=50, sigmacoeff=i, points=2**12, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
 # print(gen.x0)
 
-gen.Generating(ngenerations=5, nchildren=5, sigmacoeff=4, points=2**6, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
+gen.Generating(ngenerations=5, nchildren=50, sigmacoeff=4, points=2**12, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
 print(gen.x0)
 
 
