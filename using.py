@@ -8,6 +8,8 @@ import shutil
 import numpy as np
 import os
 from tqdm import tqdm
+import time
+
 
 RL_reference = Calc_I(freqs, recoverable_params, recoverable_params_indexes, ParmLocal, Lparms, Rparms, NSteps, Nf)
 reference = RL_reference[:,5:].ravel()
@@ -26,7 +28,7 @@ def func_multythread(prs):
     # определяем число потоков и осталяем один свободным для возможности работать
     num_of_cpu = multiprocessing.cpu_count()
     y = np.zeros((prs.shape[1], len(freqs)*2))
-    with ThreadPoolExecutor(max_workers = num_of_cpu - 2) as executor:
+    with ThreadPoolExecutor(max_workers = num_of_cpu - 1) as executor:
         futures = []
         for i in range(prs.shape[1]):
             futures.append(executor.submit(sub, prs[:,i], i))
@@ -36,8 +38,8 @@ def func_multythread(prs):
     return y
 
 def minimizer(y):
-    return functional_irrational(y, reference)
-    # return functional(y, reference)
+    # return functional_irrational(y, reference)
+    return functional(y, reference)
 
 # удаляем все остатки с прошлого раза, если они есть
 try:
@@ -73,9 +75,11 @@ gen = generatingModels(func_multythread, minimizer, dimensions = n, fname = 'dat
 #     gen.Generating(ngenerations=0, nchildren=50, sigmacoeff=i, points=2**12, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
 # print(gen.x0)
 
-gen.Generating(ngenerations=5, nchildren=50, sigmacoeff=4, points=2**12, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
+start = time.time()
+gen.Generating(ngenerations=10, nchildren=25, sigmacoeff=4, points=2**12, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
 print(gen.x0)
-
+end = time.time()
+print(f"Время выполнения - {(end-start)/60} min")
 
 # gen.plot(recoverable_params)
 # сохранение графика

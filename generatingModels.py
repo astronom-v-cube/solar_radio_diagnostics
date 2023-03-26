@@ -36,17 +36,18 @@ class generatingModels:
         # получение интервалов генерации точек для отображения
         ranges = []
         for i in recoverable_params_indexes:
-            ranges.append(limits_of_gen_ParmLocal[i]) 
+            # переводим в формат int
+            one_range = tuple(map(int, limits_of_gen_ParmLocal[i]))
+            ranges.append(one_range) 
         # получение подписей для графиков
         titles = []
         for i in recoverable_params_indexes:
             titles.append(names_of_ParmLocal[i]) 
-            
-        corner_figure = plt.figure(figsize=(25, 25))
-        corner.corner(data = x, weights = (1/r).ravel(), titles = titles, fig = corner_figure, truths = truths, title_fmt=None, show_titles = True) 
-        # , range=ranges    [(1000000, 1e+08), (3e+08, 7e+09), (0, 360), (0, 1000), (100000, 10000000)]
-        # , plot_datapoints=False
+
+        corner_figure = plt.figure(figsize=(20, 20))
+        corner_figure = corner.corner(data = x, weights = (1/r).ravel(), titles = titles, fig = corner_figure, truths = truths, title_fmt = None, show_titles = True, range = ranges) 
         corner_figure.tight_layout()
+        # , plot_datapoints=False
         corner_figure.savefig(f'corner_plot_{number_of_gen}_gen_$_len.freqs = {len(freqs)}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
 
     def generate(self, points, method):
@@ -80,10 +81,6 @@ class generatingModels:
                     one_point.append(num)
                 x.append(one_point)
             x = np.array(x)
-
-        elif method == 'new_random_second_gen':
-            # (точка слева, точка справа, (количество точек, размерность))
-            x = np.random.uniform(self.x0 / (self.gen - 0.99), self.x0 / (self.gen + 1), (points, self.ndim))
 
         # вбрасываем немного случайных координат вне зависимости от области генерации
 
@@ -142,13 +139,13 @@ class generatingModels:
         plt.cla()
         plt.yscale('log')
         plt.grid(True, which="both", linestyle='--')
-
-        # list_params = [r'$n_0$', r'$B$', r'$\theta$', r'$n_e$', r'$\delta_1$']
-        # for i, err in enumerate(deltarefrerence.T):
-        #     plt.plot(np.abs(err/refx[i]), label = f"Параметр {i+1} - {list_params[i]}")
+        # получение подписей для графиков
+        legends_list = []
+        for i in recoverable_params_indexes:
+            legends_list.append(names_of_ParmLocal[i])
 
         for i, err in enumerate(deltarefrerence.T):
-            plt.plot(np.abs(err/refx[i]), label = f"параметр {i+1}", linewidth = 4)
+            plt.plot(np.abs(err/refx[i]), label = f"Параметр {i+1} - {legends_list[i]}", linewidth = 6)
         plt.xlabel("Поколение", fontsize=28)
         plt.ylabel("Относительная ошибка", fontsize=28)
         plt.legend()
@@ -160,7 +157,7 @@ class generatingModels:
         # подсчет спектра по модели
         model_spectrum = Calc_I(freqs, recoverable_params, recoverable_params_indexes, ParmLocal, Lparms, Rparms, NSteps, Nf)[:,5:].ravel()
         # отрисовка
-        fig, axs = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(30, 16))
+        fig, axs = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(25, 12))
         axs[0].grid(True, which="both", linestyle='--')
         axs[1].grid(True, which="both", linestyle='--')
         # list_params = [r'$n_0$', r'$B$', r'$\theta$', r'$n_e$', r'$\delta_1$']
@@ -178,8 +175,8 @@ class generatingModels:
         axs[0].set_title("Левая поляризация", fontsize=28)
         axs[1].set_title("Правая поляризация", fontsize=28)
         axs[0].set_ylabel(r"Интенсивность, $sfu$", fontsize=28)
-        axs[0].legend()
-        axs[1].legend()
+        axs[0].legend(fontsize=20)
+        axs[1].legend(fontsize=20)
         plt.tight_layout()
         plt.savefig(f'spectrum_{number_of_gen}_gen_$_freqs = {len(freqs)}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
     

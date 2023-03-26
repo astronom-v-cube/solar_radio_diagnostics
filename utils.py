@@ -32,10 +32,10 @@ def functional(Irl, Irefrl): # I1L, I1R, I2L, I2R
     V = Irl[:,0::2] - Irl[:,1::2]
     Iref = Irefrl[0::2] + Irefrl[1::2]
     Vref = Irefrl[0::2] - Irefrl[1::2]
-    return np.sqrt(((I-Iref)**2/Iref**2 + (V-Vref)**2/Vref**2).sum(1))
+    # return np.sqrt(((I-Iref)**2/Iref**2 + (V-Vref)**2/Vref**2).sum(1))
 
-    # еще вот так его писали, вроде тоже сходилось
-    # return np.sqrt(((I-Iref)**2/Iref**2).sum(1))
+    # еще вот так его писали, это без учета поляризации
+    return np.sqrt(((I-Iref)**2/Iref**2).sum(1))
 
 # новый иррациональный функционал
 def functional_irrational(Irl, Irefrl): # I1L, I1R, I2L, I2R

@@ -3,7 +3,9 @@ import numpy as np
 libname = 'gyrosynchrotron/Binaries/MWTransferArr64.dll' # имя исполняемой библиотеки - находится там, где Python сможет ее найти
 
 # список частот, на которых происходит восстановление
-freqs=[4*1e9, 5*1e9, 6*1e9, 8*1e9, 9*1e9, 10*1e9, 11*1e9, 12*1e9]
+# freqs=[4*1e9, 5*1e9, 6*1e9, 8*1e9, 9*1e9, 10*1e9, 11*1e9, 12*1e9]
+freqs=[4*1e9, 6*1e9, 8*1e9, 10*1e9, 12*1e9]
+
 
 Nf=1     # number of frequencies
 NSteps=1  # number of nodes along the line-of-sight
@@ -72,6 +74,6 @@ names_of_ParmLocal[15]=r'$theta_2$'   # граница конуса потерь
 
 # индексы восстанавливаемых параметров
 # [12, 2], [12, 3], [12, 4], [12, 7], [2, 3], [2, 4], [2, 7], [3, 4], [4, 7], [3, 7]
-recoverable_params_indexes = [3, 4, 12] 
+recoverable_params_indexes = [2, 3, 4, 12] 
 recoverable_params=np.zeros(len(recoverable_params_indexes), dtype='double')
 recoverable_params = ParmLocal[recoverable_params_indexes]
