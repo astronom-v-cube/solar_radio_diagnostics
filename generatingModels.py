@@ -39,13 +39,14 @@ class generatingModels:
             # переводим в формат int
             one_range = tuple(map(int, limits_of_gen_ParmLocal[i]))
             ranges.append(one_range) 
+        print(ranges)
         # получение подписей для графиков
         titles = []
         for i in recoverable_params_indexes:
             titles.append(names_of_ParmLocal[i]) 
 
         corner_figure = plt.figure(figsize=(20, 20))
-        corner_figure = corner.corner(data = x, weights = (1/r).ravel(), titles = titles, fig = corner_figure, truths = truths, title_fmt = None, show_titles = True, range = ranges) 
+        corner.corner(data = x, weights = (1/r).ravel(), titles = titles, fig = corner_figure, truths = truths, title_fmt = None, show_titles = True, range = ranges) 
         corner_figure.tight_layout()
         # , plot_datapoints=False
         corner_figure.savefig(f'corner_plot_{number_of_gen}_gen_$_len.freqs = {len(freqs)}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
