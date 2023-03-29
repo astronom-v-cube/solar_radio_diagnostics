@@ -2,6 +2,7 @@ import numpy as np
 import corner
 import matplotlib.pyplot as plt
 import time
+from tqdm import tqdm
 from params import freqs, ParmLocal, Lparms, Rparms, NSteps, Nf, recoverable_params,  recoverable_params_indexes, limits_of_gen_ParmLocal, names_of_ParmLocal
 from utils import Calc_I
 import matplotlib
@@ -36,10 +37,8 @@ class generatingModels:
         # получение интервалов генерации точек для отображения
         ranges = []
         for i in recoverable_params_indexes:
-            # переводим в формат int
-            one_range = tuple(map(int, limits_of_gen_ParmLocal[i]))
-            ranges.append(one_range) 
-        print(ranges)
+            one_range = limits_of_gen_ParmLocal[i]
+            ranges.append(one_range)
         # получение подписей для графиков
         titles = []
         for i in recoverable_params_indexes:
@@ -50,6 +49,28 @@ class generatingModels:
         corner_figure.tight_layout()
         # , plot_datapoints=False
         corner_figure.savefig(f'corner_plot_{number_of_gen}_gen_$_len.freqs = {len(freqs)}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
+
+    def float_and_int_generation(self, points, desc, method='gaussian'):
+        
+        if method=='gaussian':
+            pass
+        
+        elif method=='new_random_first_gen':
+            x = []
+            # для всех точек по их количеству
+            for i in tqdm(range(points), desc='Генерация массива координат'):
+                # массив второго уровня хранящий одну точку
+                one_point = np.zeros(len(recoverable_params_indexes))
+                # проходимся по индексам и берем границы генерации 
+                for k, index in enumerate(recoverable_params_indexes):
+                    if index in []:
+                        if index == 12:
+                            one_point[k] = np.random.randint(2, 8)
+                    else:
+                        one_point[k] = np.random.uniform(limits_of_gen_ParmLocal[index][0], limits_of_gen_ParmLocal[index][1])
+                x.append(one_point)
+            x = np.array(x)
+        return x
 
     def generate(self, points, method):
         filex = open(f'{self.fname}_gen{self.gen}_x.txt', 'a')
@@ -67,44 +88,20 @@ class generatingModels:
 
         elif method == 'new_random_first_gen':
             # (точка слева, точка справа, (количество точек, размерность))
-            # выходной массив
-            x = []
-            # для всех точек по их количеству
-            for i in range(points):
-                # массив второго уровня хранящий одну точку
-                one_point = []
-                # проходимся по индексам и берем границы генерации 
-                for k in recoverable_params_indexes:
-                    num = np.random.uniform(limits_of_gen_ParmLocal[k][0], limits_of_gen_ParmLocal[k][1])
-                    # num_1 = np.random.uniform(limits_of_gen_ParmLocal[k][0], limits_of_gen_ParmLocal[k][1])
-                    # num_2 = None
-                    # np.random.randint(2, 8)
-                    one_point.append(num)
-                x.append(one_point)
-            x = np.array(x)
+            x = self.float_and_int_generation(points, desc = 'Генерация массива координат', method=method)
 
-        # вбрасываем немного случайных координат вне зависимости от области генерации
-
-        x_additional = []
-        # для всех точек по их количеству
-        for i in range(points//4):
-            # массив второго уровня хранящий одну точку
-            one_point = []
-            # проходимся по индексам и берем границы генерации 
-            for k in recoverable_params_indexes:
-                num = np.random.uniform(limits_of_gen_ParmLocal[k][0], limits_of_gen_ParmLocal[k][1])
-                one_point.append(num)
-            x_additional.append(one_point)
-        x_additional = np.array(x_additional)
-        x = np.concatenate((x, x_additional), axis=0)
+        # вбрасываем немного случайных координат вне зависимости от области генерации после 0 поколения
+        if self.gen:
+            x_additional = self.float_and_int_generation(points, desc = 'Генерация дополнительного массива координат', method='new_random_first_gen')
+            x = np.concatenate((x, x_additional), axis=0)
         # np.append(x, [6e+09, 1.80e+02, 8.0e+01, 1.e+06])
-        # удаление отрицательных координат
+        # удаление нулевых или отрицательных координат
         # ищем отрицательную координату в каждом наборе координат
         mask = x.min(1) > 0
         # удаление из массива точек с отрицательными координатами
         x = x[mask]
         self.x = x
-        # транспонируем - так удобнее потом
+        # транспонируем - так удобнее
         y = self.func(x.T)
         self.y = y
         # расчет отклонения от истинных параметров - функционал
@@ -144,7 +141,6 @@ class generatingModels:
         legends_list = []
         for i in recoverable_params_indexes:
             legends_list.append(names_of_ParmLocal[i])
-
         for i, err in enumerate(deltarefrerence.T):
             plt.plot(np.abs(err/refx[i]), label = f"Параметр {i+1} - {legends_list[i]}", linewidth = 6)
         plt.xlabel("Поколение", fontsize=28)
@@ -161,10 +157,6 @@ class generatingModels:
         fig, axs = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(25, 12))
         axs[0].grid(True, which="both", linestyle='--')
         axs[1].grid(True, which="both", linestyle='--')
-        # list_params = [r'$n_0$', r'$B$', r'$\theta$', r'$n_e$', r'$\delta_1$']
-        # for i, err in enumerate(deltarefrerence.T):
-        #     plt.plot(np.abs(err/refx[i]), label = f"Параметр {i+1} - {list_params[i]}")
-
         for i, intensivity_L in enumerate(L):
             axs[0].plot(freqs, intensivity_L, label = f"Спектр на поколении {i+1}", linewidth = 5*(i+1)*0.3)
         for i, intensivity_R in enumerate(R):
@@ -193,7 +185,7 @@ class generatingModels:
             self.corner_plot(self.x, self.r, 0, ngenerations, nchildren, sigmacoeff, points, method)
             spectrum_L.append(list(self.get('y', self.getmins(1))[0][0::2]))
             spectrum_R.append(list(self.get('y', self.getmins(1))[0][1::2]))
-            self.plot_spectrum(spectrum_L, spectrum_R, freqs, self.gen + 1, ngenerations, nchildren, sigmacoeff, points, method)
+            self.plot_spectrum(spectrum_L, spectrum_R, freqs, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
             
         # переменная счетчик
         gen = self.gen
