@@ -45,7 +45,7 @@ class generatingModels:
             titles.append(names_of_ParmLocal[i]) 
 
         corner_figure = plt.figure(figsize=(20, 20))
-        corner.corner(data = x, weights = (1/r).ravel(), titles = titles, fig = corner_figure, truths = truths, title_fmt = None, show_titles = True, range = ranges, truth_color = 'red') 
+        corner.corner(data = x, weights = (1/r).ravel(), titles = titles, fig = corner_figure, truths = truths, title_fmt = None, show_titles = True, range = ranges, truth_color = 'red', axes_scale = ('linear', 'linear', 'log', 'linear')) 
         corner_figure.tight_layout()
         # , plot_datapoints=False
         corner_figure.savefig(f'corner_plot_{number_of_gen}_gen_$_len.freqs = {len(freqs)}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
@@ -168,6 +168,8 @@ class generatingModels:
         axs[0].set_title("Левая поляризация", fontsize=28)
         axs[1].set_title("Правая поляризация", fontsize=28)
         axs[0].set_ylabel(r"Интенсивность, $sfu$", fontsize=28)
+        axs[0].loglog()
+        axs[1].loglog()
         axs[0].legend(fontsize=20)
         axs[1].legend(fontsize=20)
         plt.tight_layout()

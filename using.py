@@ -76,7 +76,7 @@ gen = generatingModels(func_multythread, minimizer, dimensions = n, fname = 'dat
 # print(gen.x0)
 
 start = time.time()
-gen.Generating(ngenerations=1, nchildren=5, sigmacoeff=4, points=2**9, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
+gen.Generating(ngenerations=10, nchildren=35, sigmacoeff=8, points=2**12, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
 print(gen.x0)
 end = time.time()
 print(f"Время выполнения - {(end-start)/60} min")
