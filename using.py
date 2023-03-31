@@ -28,7 +28,7 @@ def func_multythread(prs):
     # определяем число потоков и осталяем один свободным для возможности работать
     num_of_cpu = multiprocessing.cpu_count()
     y = np.zeros((prs.shape[1], len(freqs)*2))
-    with ThreadPoolExecutor(max_workers = num_of_cpu - 1) as executor:
+    with ThreadPoolExecutor(max_workers = num_of_cpu - 0) as executor:
         futures = []
         for i in range(prs.shape[1]):
             futures.append(executor.submit(sub, prs[:,i], i))
@@ -76,7 +76,7 @@ gen = generatingModels(func_multythread, minimizer, dimensions = n, fname = 'dat
 # print(gen.x0)
 
 start = time.time()
-gen.Generating(ngenerations=10, nchildren=35, sigmacoeff=8, points=2**12, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
+gen.Generating(ngenerations=3, nchildren=10, sigmacoeff=4, points=2**10, method='new_random_first_gen', do_plot = True, refx = recoverable_params)
 print(gen.x0)
 end = time.time()
 print(f"Время выполнения - {(end-start)/60} min")

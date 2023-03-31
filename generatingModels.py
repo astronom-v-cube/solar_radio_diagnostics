@@ -36,16 +36,17 @@ class generatingModels:
             truths.append(ParmLocal[i])
         # получение интервалов генерации точек для отображения
         ranges = []
+        axes_scales = []
         for i in recoverable_params_indexes:
-            one_range = limits_of_gen_ParmLocal[i]
-            ranges.append(one_range)
+            ranges.append([limits_of_gen_ParmLocal[i][0], limits_of_gen_ParmLocal[i][1]])
+            axes_scales.append(limits_of_gen_ParmLocal[i][2])
         # получение подписей для графиков
         titles = []
         for i in recoverable_params_indexes:
             titles.append(names_of_ParmLocal[i]) 
 
         corner_figure = plt.figure(figsize=(20, 20))
-        corner.corner(data = x, weights = (1/r).ravel(), titles = titles, fig = corner_figure, truths = truths, title_fmt = None, show_titles = True, range = ranges, truth_color = 'red', axes_scale = ('linear', 'linear', 'log', 'linear')) 
+        corner.corner(data = x, weights = (1/r).ravel(), titles = titles, fig = corner_figure, truths = truths, title_fmt = None, show_titles = True,truth_color = 'red', axes_scale = axes_scales) 
         corner_figure.tight_layout()
         # , plot_datapoints=False
         corner_figure.savefig(f'corner_plot_{number_of_gen}_gen_$_len.freqs = {len(freqs)}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
@@ -69,7 +70,7 @@ class generatingModels:
                     else:
                         one_point[k] = np.random.uniform(limits_of_gen_ParmLocal[index][0], limits_of_gen_ParmLocal[index][1])
                 x.append(one_point)
-            x = np.array(x)
+        x = np.array(x)
         return x
 
     def generate(self, points, method):
@@ -81,6 +82,12 @@ class generatingModels:
         if not method or method == 'gaussian':
             # (начальная точка, ширина, (количество точек, размерность))
             x = np.random.normal(self.x0, self.sigma, (points, self.ndim))
+            k = 0
+            for i in recoverable_params_indexes:
+                a = limits_of_gen_ParmLocal[i][0]
+                b = limits_of_gen_ParmLocal[i][1]
+                x[:, k] = (b - a) * (x[:, k] - x[:, k].min()) / (x[:, k].max() - x[:, k].min()) + a
+                k += 1
 
         elif method == 'random':
             # (точка слева, точка справа, (количество точек, размерность))
@@ -94,7 +101,9 @@ class generatingModels:
         if self.gen:
             x_additional = self.float_and_int_generation(points, desc = 'Генерация дополнительного массива координат', method='new_random_first_gen')
             x = np.concatenate((x, x_additional), axis=0)
-        # np.append(x, [6e+09, 1.80e+02, 8.0e+01, 1.e+06])
+        np.append(x, [1.65e+02, 7.5e+01, 1.e+08, 6])
+        np.append(x, [1.66e+02, 7.6e+01, 1.01e+08, 6.01])
+        np.append(x, [1.64e+02, 7.4e+01, 9.99e+07, 5.99])
         # удаление нулевых или отрицательных координат
         # ищем отрицательную координату в каждом наборе координат
         mask = x.min(1) > 0

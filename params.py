@@ -40,19 +40,19 @@ ParmLocal[15]=70   # граница конуса потерь, градусы
 ParmLocal[16]=1  # \Delta\mu
 ParmLocal[22]=-1  # \Delta\mu
 
-limits_of_gen_ParmLocal = np.zeros(24, dtype=[('min', float), ('max', float)])
-limits_of_gen_ParmLocal[1]=(1e6, 1e8)   # T_0, K
-limits_of_gen_ParmLocal[2]=(1e8, 1e11)  # n_0 - тепловая электронная плотность, см^{-3}
-limits_of_gen_ParmLocal[3]=(20, 1000)   # B - магнитное поле, G
-limits_of_gen_ParmLocal[4]=(0, 360)   #угол между В и лучом зрения
+limits_of_gen_ParmLocal = np.zeros(24, dtype=[('min', float), ('max', float), ('axes_scale', 'U10')])
+limits_of_gen_ParmLocal[1]=(1e6, 1e8, 'log')   # T_0, K
+limits_of_gen_ParmLocal[2]=(1e8, 1e11, 'log')  # n_0 - тепловая электронная плотность, см^{-3}
+limits_of_gen_ParmLocal[3]=(20, 1000, 'linear')   # B - магнитное поле, G
+limits_of_gen_ParmLocal[4]=(0, 360, 'linear')   #угол между В и лучом зрения
 # limits_of_gen_ParmLocal[5]= 0 + 4
 # limits_of_gen_ParmLocal[6]=3     # распределение по энергии (выбирается ЗАКОН LAW)
-limits_of_gen_ParmLocal[7]=(1e6, 1e10)   # n_b - нетепловая электронная плотность, см^{-3}
+limits_of_gen_ParmLocal[7]=(1e6, 1e10, 'log')   # n_b - нетепловая электронная плотность, см^{-3}
 # limits_of_gen_ParmLocal[9]=0.03   # E_min, MeV
 # limits_of_gen_ParmLocal[10]=10.0 # E_max, MeV
-limits_of_gen_ParmLocal[12]=(2.0, 7.0)  # \delta_1
+limits_of_gen_ParmLocal[12]=(2.0, 7.0, 'linear')  # \delta_1
 # limits_of_gen_ParmLocal[14]=3    # # распределение по питч-углу (выбирается GLC)
-limits_of_gen_ParmLocal[15]=(0, 360)   # граница конуса потерь, градусы
+limits_of_gen_ParmLocal[15]=(0, 360, 'linear')   # граница конуса потерь, градусы
 # limits_of_gen_ParmLocal[16]=1  # \Delta\mu
 # limits_of_gen_ParmLocal[22]=-1  # \Delta\mu
 
@@ -74,6 +74,6 @@ names_of_ParmLocal[15]=r'$theta_2$'   # граница конуса потерь
 
 # индексы восстанавливаемых параметров
 # [12, 2], [12, 3], [12, 4], [12, 7], [2, 3], [2, 4], [2, 7], [3, 4], [4, 7], [3, 7]
-recoverable_params_indexes = [3, 4, 7, 12] 
+recoverable_params_indexes = [2, 7] 
 recoverable_params=np.zeros(len(recoverable_params_indexes), dtype='double')
 recoverable_params = ParmLocal[recoverable_params_indexes]
