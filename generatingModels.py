@@ -82,12 +82,11 @@ class generatingModels:
         if not method or method == 'gaussian':
             # (начальная точка, ширина, (количество точек, размерность))
             x = np.random.normal(self.x0, self.sigma, (points, self.ndim))
-            k = 0
-            for i in recoverable_params_indexes:
-                a = limits_of_gen_ParmLocal[i][0]
-                b = limits_of_gen_ParmLocal[i][1]
-                x[:, k] = (b - a) * (x[:, k] - x[:, k].min()) / (x[:, k].max() - x[:, k].min()) + a
-                k += 1
+            # чтобы генерация была в нужной области и не было 3к градусов сжимаем полученный гаусс до пределов генерации
+            for i, index in enumerate(recoverable_params_indexes):
+                a = limits_of_gen_ParmLocal[index][0]
+                b = limits_of_gen_ParmLocal[index][1]
+                x[:, i] = (b - a) * (x[:, i] - x[:, i].min()) / (x[:, i].max() - x[:, i].min()) + a
 
         elif method == 'random':
             # (точка слева, точка справа, (количество точек, размерность))
@@ -234,7 +233,7 @@ class generatingModels:
             # если включена отрисовка графика и есть более двух точек - рисуем
             if do_plot and self.gen > 1: 
                 self.plot_error_rate(refx, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
-                self.plot_spectrum(spectrum_L, spectrum_R, freqs, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
+            self.plot_spectrum(spectrum_L, spectrum_R, freqs, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
             # пишем что лучшее вышло на текущем шаге
             print(self.get('x', self.getmins(1))[0])
             # сохраняем информацию о восстановленном спектре для анализа
