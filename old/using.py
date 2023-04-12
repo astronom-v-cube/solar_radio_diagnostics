@@ -21,7 +21,8 @@ def func(variable_parameter):
     return y
 
 # аналог func для одной точки и с возвратом индекса
-def sub(variable_parameter ,i):
+def sub(variable_parameter, i):
+    print(variable_parameter)
     return Calc_I(freqs, variable_parameter, indexes_of_recoverable_parameters, ParmLocal, Lparms, Rparms, NSteps, Nf)[:,5:].ravel(), i
 
 def func_multythread(variable_parameter):

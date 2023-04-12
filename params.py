@@ -3,9 +3,12 @@ import numpy as np
 libname = 'gyrosynchrotron/Binaries/MWTransferArr64.dll' # имя исполняемой библиотеки - находится там, где Python сможет ее найти
 
 # список частот, на которых происходит восстановление
-freqs=[3*1e9, 4*1e9, 5*1e9, 6*1e9, 7*1e9, 8*1e9, 9*1e9, 10*1e9, 11*1e9, 12*1e9]
-# freqs=[4*1e9, 6*1e9, 8*1e9, 10*1e9, 12*1e9]
-
+# freqs=[3*1e9, 4*1e9, 5*1e9, 6*1e9, 7*1e9, 8*1e9, 9*1e9, 10*1e9, 11*1e9, 12*1e9]
+coeff = 1.17  # коэффициент увеличения
+freqs = [3e9]  # начальное число
+for i in range(9):  # генерируем еще 9 частот
+    next_number = freqs[-1] * coeff  # следующее число = предыдущее * коэффициент
+    freqs.append(next_number)
 
 Nf=1     # number of frequencies
 NSteps=1  # number of nodes along the line-of-sight
@@ -22,19 +25,19 @@ Rparms[3]=12   # f^C
 Rparms[4]=12   # f^WH
  
 L=1e9 # общая глубина источника, см
-
+ 
 ParmLocal=np.zeros(24, dtype='double') # массив параметров вокселя - для одного вокселя
 ParmLocal[0]=L/NSteps  # глубина вокселя, см
 ParmLocal[1]=1e7   # T_0, K
-ParmLocal[2]=1e8   # n_0 - тепловая электронная плотность, см^{-3}
-ParmLocal[3]=165   # B - магнитное поле, G
-ParmLocal[4]=75    #угол между В и лучом зрения
+ParmLocal[2]=7e8   # n_0 - тепловая электронная плотность, см^{-3}
+ParmLocal[3]=270   # B - магнитное поле, G
+ParmLocal[4]=65    #угол между В и лучом зрения
 ParmLocal[5]= 0 + 4
 ParmLocal[6]=3     # распределение по энергии (выбирается ЗАКОН LAW)
-ParmLocal[7]=1e8   # n_b - нетепловая электронная плотность, см^{-3}
+ParmLocal[7]=7e6   # n_b - нетепловая электронная плотность, см^{-3}
 ParmLocal[9]=0.03   # E_min, MeV
 ParmLocal[10]=10.0 # E_max, MeV
-ParmLocal[12]=6  # \delta_1
+ParmLocal[12]=4  # \delta_1
 ParmLocal[14]=3    # # распределение по питч-углу (выбирается GLC)
 ParmLocal[15]=70   # граница конуса потерь, градусы
 ParmLocal[16]=1  # \Delta\mu
@@ -74,6 +77,6 @@ names_of_ParmLocal[15]=r'$theta_2$'   # граница конуса потерь
 
 # индексы восстанавливаемых параметров
 # [12, 2], [12, 3], [12, 4], [12, 7], [2, 3], [2, 4], [2, 7], [3, 4], [4, 7], [3, 7]
-recoverable_params_indexes = [2, 7] 
+recoverable_params_indexes = [2, 3, 4, 7, 12] 
 recoverable_params=np.zeros(len(recoverable_params_indexes), dtype='double')
 recoverable_params = ParmLocal[recoverable_params_indexes]
