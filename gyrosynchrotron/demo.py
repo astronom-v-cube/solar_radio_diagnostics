@@ -1,12 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import GScodes # initialization library - located either in the current directory or in the system path
+import matplotlib
+matplotlib.rcParams.update({'font.size': 25})
 
-libname='./MWTransferArr64.dll' # name of the executable library - located where Python can find it
+libname='D:\Документы\solar_radio_diagnostics\gyrosynchrotron\Binaries\MWTransferArr64.dll' # name of the executable library - located where Python can find it
 
 GET_MW=GScodes.initGET_MW(libname) # load the library
 
-Nf=100     # number of frequencies
+Nf=1000     # number of frequencies
 NSteps=30  # number of nodes along the line-of-sight
  
 Lparms=np.zeros(11, dtype='int32') # array of dimensions etc.
@@ -16,7 +18,7 @@ Lparms[1]=Nf
 Rparms=np.zeros(5, dtype='double') # array of global floating-point parameters
 Rparms[0]=1e20 # area, cm^2
 Rparms[1]=1e9  # starting frequency to calculate spectrum, Hz
-Rparms[2]=0.02 # logarithmic step in frequency
+Rparms[2]=0.002 # logarithmic step in frequency
 Rparms[3]=12   # f^C
 Rparms[4]=12   # f^WH
  
@@ -58,15 +60,20 @@ plt.figure(1)
 plt.plot(f, I_L+I_R)
 plt.xscale('log')
 plt.yscale('log')
-plt.title('Total intensity (analytical)')
-plt.xlabel('Frequency, GHz')
-plt.ylabel('Intensity, sfu')
+plt.text(2.7, 20000, r"$\tau \gg 1$")
+plt.text(8.5, 202000, r"$\tau \approx 1$")
+plt.text(45, 20000, r"$\tau \ll 1$")
+plt.ylim(500, 250000)
+plt.grid(True, which="both", linestyle='--')
+plt.title('Total intensity (analytical)', fontsize = 30)
+plt.xlabel('Frequency, GHz', fontsize = 30)
+plt.ylabel('Intensity, sfu', fontsize = 30)
 
-plt.figure(2)
-plt.plot(f, (I_L-I_R)/(I_L+I_R))
-plt.xscale('log')
-plt.title('Circular polarization degree (analytical)')
-plt.xlabel('Frequency, GHz')
-plt.ylabel('Polarization degree')
+# plt.figure(2)
+# plt.plot(f, (I_L-I_R)/(I_L+I_R))
+# plt.xscale('log')
+# plt.title('Circular polarization degree (analytical)', fontsize = 28)
+# plt.xlabel('Frequency, GHz', fontsize = 28)
+# plt.ylabel('Polarization degree', fontsize = 28)
 
 plt.show()

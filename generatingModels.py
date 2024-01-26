@@ -1,15 +1,14 @@
 import numpy as np
-import corner
 import matplotlib.pyplot as plt
 import time
 from tqdm import tqdm
-from params import freqs, ParmLocal, Lparms, Rparms, NSteps, Nf, recoverable_params, recoverable_params_indexes, limits_of_gen_ParmLocal, names_of_ParmLocal
-from utils import Calc_I
+from params import freqs, mfreqs, ParmLocal, Lparms, Rparms, NSteps, Nf, recoverable_params, recoverable_params_indexes, limits_of_gen_ParmLocal, names_of_ParmLocal, reference
 import matplotlib
+from matplotlib.ticker import ScalarFormatter
 matplotlib.rcParams.update({'font.size': 25})
 
 class generatingModels:
-    #calcfunc(x), x=[x0,x1,x2,...,x(dim-1)]
+    # calcfunc(x), x=[x0,x1,x2,...,x(dim-1)]
     def __init__(self, calcfunc, minimize, dimensions = 1, fname = 'dats'):
         # подсчет излучения
         self.func = calcfunc
@@ -27,6 +26,7 @@ class generatingModels:
         self.gen = 0
         # массив для хранения найденных значений
         self.x0s = []
+        self.x = np.zeros((0,dimensions))
         
 ###################
 # реализация гененирования чисто int чисел не доделана!!!!!!!!!!!! КОСТЫЛЬ
@@ -104,7 +104,8 @@ class generatingModels:
         filex = open(f'{self.fname}_gen{self.gen}_x.txt', 'a')
         filey = open(f'{self.fname}_gen{self.gen}_y.txt', 'a')
         filer = open(f'{self.fname}_gen{self.gen}_r.txt', 'a')
-
+        
+        #while self.x.shape[0] < points:
         # генерация координат
         if method == 'gaussian':
             x = self.float_and_int_generation(points, desc = 'Генерация массива координат', method=method)
@@ -157,7 +158,7 @@ class generatingModels:
         np.savetxt(filex, x)
         # интенсивности
         np.savetxt(filey, y)
-        # значения функционалов
+        # значения функционалов2.87631528
         np.savetxt(filer, r)
         filex.close()
         filey.close()
@@ -175,27 +176,28 @@ class generatingModels:
         return np.loadtxt(f'{self.fname}_gen{self.gen}_{ax}.txt')[indexes]
     
     def corner_plot(self, x, r, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
-
-        # получение координат истинной точки для отображения
-        truths = []
-        for i in recoverable_params_indexes:
-            truths.append(ParmLocal[i])
-        # получение интервалов генерации точек для отображения
-        ranges = []
-        axes_scales = []
-        for i in recoverable_params_indexes:
-            ranges.append([limits_of_gen_ParmLocal[i][0], limits_of_gen_ParmLocal[i][1]])
-            axes_scales.append(limits_of_gen_ParmLocal[i][2])
-        # получение подписей для графиков
-        titles = []
-        for i in recoverable_params_indexes:
-            titles.append(names_of_ParmLocal[i]) 
-
-        corner_figure = plt.figure(figsize=(20, 20))
-        corner.corner(data = x, weights = (1/r).ravel(), titles = titles, fig = corner_figure, truths = truths, title_fmt = None, show_titles = True, truth_color = 'red', axes_scale = axes_scales, range=ranges) 
-        corner_figure.tight_layout()
-        # , plot_datapoints=False  
-        corner_figure.savefig(f'corner_plot_{number_of_gen}_gen_$_len.freqs = {len(freqs)}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
+        if 1:
+            import corner
+            # получение координат истинной точки для отображения
+            truths = []
+            for i in recoverable_params_indexes:
+                truths.append(ParmLocal[i])
+            # получение интервалов генерации точек для отображения
+            ranges = []
+            axes_scales = []
+            for i in recoverable_params_indexes:
+                ranges.append([limits_of_gen_ParmLocal[i][0], limits_of_gen_ParmLocal[i][1]])
+                axes_scales.append(limits_of_gen_ParmLocal[i][2])
+            # получение подписей для графиков
+            titles = []
+            for i in recoverable_params_indexes:
+                titles.append(names_of_ParmLocal[i]) 
+    
+            corner_figure = plt.figure(figsize=(20, 20))
+            corner.corner(data = x, weights = (1/r).ravel(), titles = titles, fig = corner_figure, truths = truths, title_fmt = None, show_titles = True, truth_color = 'red', axes_scale = axes_scales, range=ranges) 
+            corner_figure.tight_layout()
+            # , plot_datapoints=False  
+            corner_figure.savefig(f'corner_plot_{number_of_gen}_gen_$_len.freqs = {len(freqs)}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
 
     def plot_error_rate(self, refx, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
         # расчет относительной ошибки
@@ -219,56 +221,94 @@ class generatingModels:
         plt.tight_layout()
         plt.savefig(f'error_rate_{number_of_gen}_gen_$_freqs = {len(freqs)}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
 
-    def plot_spectrum(self, L, R, freqs, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
+    def functional_plot(self, functional_array, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
+        plt.figure(figsize = (30, 16))
+        plt.cla()
+        plt.plot(range(len(functional_array)), functional_array, linewidth = 10)
+        plt.grid(True, which="both", linestyle='--')
+        plt.yscale('log')
+        plt.xlabel("Поколение", fontsize=32)
+        plt.ylabel("Значение функционала", fontsize=32)
+        plt.tight_layout()
+        plt.savefig(f'functional_plot_{number_of_gen}_gen_$_freqs = {len(freqs)}_$_ngens = {ngenerations}, nchild = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
+
+    def plot_spectrum(self, L, R, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
         # подсчет спектра по модели
-        model_spectrum = Calc_I(freqs, recoverable_params, recoverable_params_indexes, ParmLocal, Lparms, Rparms, NSteps, Nf)[:,5:].ravel()
+        reference_spectrum = reference
         # отрисовка
-        fig, axs = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(25, 12))
+        fig1, axs = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(25, 12))
         axs[0].grid(True, which="both", linestyle='--')
         axs[1].grid(True, which="both", linestyle='--')
         for i, intensivity_L in enumerate(L):
-            axs[0].plot(freqs, intensivity_L, label = f"Спектр на поколении {i+1}", linewidth = 5*(i+1)*0.15)
+            axs[0].plot(mfreqs/1e9, intensivity_L, label = f"Поколение {i+1}", linewidth = 0.75*(i+1))
         for i, intensivity_R in enumerate(R):
-            axs[1].plot(freqs, intensivity_R, label = f"Спектр на поколении {i+1}", linewidth = 5*(i+1)*0.15)
-        axs[0].plot(freqs, model_spectrum[0::2], label = f"Реальный спектр", linewidth = 8, linestyle = ':', color = 'darkblue')
-        axs[1].plot(freqs, model_spectrum[1::2], label = f"Реальный спектр", linewidth = 8, linestyle = ':', color = 'darkblue')
-        axs[0].set_xlabel("Частота, Гц", fontsize=28)
-        axs[1].set_xlabel("Частота, Гц", fontsize=28)
-        axs[0].set_title("Частотный спектр L - поляризации", fontsize=28)
-        axs[1].set_title("Частотный спектр R - поляризации", fontsize=28)
-        axs[0].set_ylabel(r"Интенсивность, $sfu$", fontsize=28)
+            axs[1].plot(mfreqs/1e9, intensivity_R, label = f"Поколение {i+1}", linewidth = 0.75*(i+1))
+        axs[0].plot(freqs/1e9, reference_spectrum[0::2],'D', label = f"Реальный спектр", linewidth = 8, color = 'darkblue', markersize=14)
+        axs[1].plot(freqs/1e9, reference_spectrum[1::2],'D', label = f"Реальный спектр", linewidth = 8, color = 'darkblue', markersize=14)
+        axs[0].set_xlabel("Частота, ГГц", fontsize=32)
+        axs[1].set_xlabel("Частота, ГГц", fontsize=32)
+        axs[0].set_title("Частотный спектр L - поляризации", fontsize=32)
+        axs[1].set_title("Частотный спектр R - поляризации", fontsize=32)
+        axs[0].set_ylabel(r"Интенсивность, $sfu$", fontsize=32)
         axs[0].loglog()
         axs[1].loglog()
-        axs[0].legend(fontsize=12)
-        axs[1].legend(fontsize=12)
+        axs[0].set_ylim(reference_spectrum.min() - reference_spectrum.min() * 0.2, reference_spectrum.max() + reference_spectrum.max() * 0.2)
+        axs[1].set_ylim(reference_spectrum.min() - reference_spectrum.min() * 0.2, reference_spectrum.max() + reference_spectrum.max() * 0.2)
+        # axs[0].legend(fontsize=18, ncol=2)
+        axs[1].legend(fontsize=18, ncol=3)
         plt.tight_layout()
-        plt.savefig(f'spectrum_{number_of_gen}_gen_$_freqs = {len(freqs)}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
+        plt.savefig(f'RL_spectrum_{number_of_gen}_gen_$_freqs = {len(freqs)}_$_ngens = {ngenerations}, nchild = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
+        
+        reference_intensity = reference_spectrum[0::2] + reference_spectrum[1::2]
+        fig2, ax = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(15, 15))
+        ax.grid(True, which="both", linestyle='--')
+        for i, intensivity_L in enumerate(L):
+            ax.plot(mfreqs/1e9, L[i] + R[i], label = f"Поколение {i+1}", linewidth = 0.75*(i+1))
+        ax.plot(freqs/1e9, reference_intensity, 'D', label = f"Реальный спектр", linewidth = 8, color = 'darkblue', markersize=14)
+        ax.set_xlabel("Частота, ГГц", fontsize=32)
+        ax.set_title("Частотный спектр интенсивности излучения", fontsize=32)
+        ax.set_ylabel(r"Интенсивность, $sfu$", fontsize=32)
+        ax.loglog()
+        ax.set_ylim(reference_intensity.min() - reference_intensity.min() * 0.2, reference_intensity.max() + reference_intensity.max() * 0.2)
+        ax.legend(fontsize=18, ncol=2)
+        plt.tight_layout()
+        plt.savefig(f'I_spectrum_{number_of_gen}_gen_$_freqs = {len(freqs)}_$_ngens = {ngenerations}, nchild = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
     
     ######################################
     # функция генерации
     # (количество поколений, количество потомков, коэфиициент изменения ширины генерации, количество точек на ребенка)
     def Generating(self, ngenerations, nchildren, sigmacoeff, points, method, do_plot = False, refx = None):
-
+        
         spectrum_L, spectrum_R = [], []
+        # массив хранения функционалов
+        functional_array = [] 
+        array_rec_params = []
 
         # если еще нету нулевого поколения - генерируем точки и значения к ним
         if not self.gen:
             self.x0s.append(self.x0)
-            self.generate(points * nchildren, method)
+            self.generate(points * nchildren * 10, method)
             try:
                 self.corner_plot(self.x, self.r, 0, ngenerations, nchildren, sigmacoeff, points, method)
             except: 
                 print('Ошибка построения corner')
-            spectrum_L.append(list(self.get('y', self.getmins(1))[0][0::2]))
-            spectrum_R.append(list(self.get('y', self.getmins(1))[0][1::2]))
-            self.plot_spectrum(spectrum_L, spectrum_R, freqs, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
+            y_min = self.get('y', self.getmins(1))[0]
+            spectrum_L.append(y_min[:Nf])
+            spectrum_R.append(y_min[Nf:])
+            self.plot_spectrum(spectrum_L, spectrum_R, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
+            functional_array.append(self.get('r', self.getmins(1)))
             
         # переменная счетчик
         gen = self.gen
+    
         # цикл генерации n поколений
         # поколоние с которого начали генерировать - текущее поколение, нужно для генерации + поколений к расчитанным
 
         while self.gen-gen < ngenerations:
+            
+            start = time.time()
+
+            self.x = np.zeros((0, self.ndim))
             # imins - массив индексов детей по возрастанию
             imins = self.getmins(nchildren)
             # все координаты в прошлой генерации
@@ -283,10 +323,14 @@ class generatingModels:
                 xr = (((all_x - x) / self.sigma) ** 2).sum(1)
                 # ну тут первая точка - сама точка, поэтому и расстояние до нее 0, поэтому берем вторую точку
                 deltas[i] = np.abs(all_x[xr.argsort()[1]]-x) 
+            
+            #если типо сошелся то вызываем исключение, ибо нефиг)
+            1/int(deltas[0,0])
 
             # если включена отрисовка графика и есть более двух точек - рисуем
             if do_plot:
-                self.plot_error_rate(refx, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
+                # self.plot_error_rate(refx, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
+                self.functional_plot(functional_array, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
 
             # увеличиваем счетчик поколений
             self.gen += 1
@@ -294,6 +338,7 @@ class generatingModels:
             self.x0s.append(xmins[0])
             # расчет новой сигмы - усредненная близость по каждому из параметров к другим точкам с меньшим функционалам * на некий sigmacoeff
             self.sigma = deltas.mean(0)*sigmacoeff
+
             # генерация "социума" ребенка
             for i, x in enumerate(xmins):
                 print(f'{self.gen} gen, {i + 1} chld')
@@ -304,14 +349,23 @@ class generatingModels:
             except: 
                 print('Ошибка построения corner')
 
-            self.plot_spectrum(spectrum_L, spectrum_R, freqs, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
+            functional_array.append(self.get('r', self.getmins(1)))
+
             # пишем что лучшее вышло на текущем шаге
-            print(self.get('x', self.getmins(1))[0])
+            best = self.get('x', self.getmins(1))[0]
+            print(best)
+            array_rec_params.append(best)
+
             # сохраняем информацию о восстановленном спектре для анализа
-            spectrum_L.append(list(self.get('y', self.getmins(1))[0][0::2]))
-            spectrum_R.append(list(self.get('y', self.getmins(1))[0][1::2]))
+            y_min = self.get('y', self.getmins(1))[0]
+            spectrum_L.append(y_min[:Nf])
+            spectrum_R.append(y_min[Nf:])
+
+            self.plot_spectrum(spectrum_L, spectrum_R, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
+            np.savez('diagnostic_backup.npz', params=array_rec_params, functional=functional_array, spectrum_L = spectrum_L, spectrum_R = spectrum_R)
+            
             # небольшая передышка
-            time.sleep(4)
+            time.sleep(1)
 
         # результат для последнего поколения        
         self.x0 = self.get('x', self.getmins(1))[0]
@@ -322,6 +376,11 @@ class generatingModels:
         print(f'ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}')
 
         # рисуем график
-        if do_plot: self.plot_error_rate(refx, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
+        # if do_plot: 
+            # self.plot_error_rate(refx, self.gen, ngenerations, nchildren, sigmacoeff, points, method)
+            # self.functional_plot(functional_array, ngenerations, ngenerations, nchildren, sigmacoeff, points, method)
         # plt.show()
+        
+        end = time.time()
+        print(f"Время поколения - {(end-start)/60} min")
                 

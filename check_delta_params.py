@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri May  6 22:01:45 2022
-
-@author: edombek
-"""
-
 from utils import Calc_I, functional_irrational
 from params import freqs, refprs, prs_indexes, ParmLocal, Lparms, Rparms, NSteps, Nf
 import numpy as np
