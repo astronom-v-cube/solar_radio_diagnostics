@@ -48,7 +48,10 @@ if __name__ == "__main__":
     # удаляем все остатки с прошлого раза, если они есть
     try:
         os.mkdir('dats')
+        os.mkdir('graphs')
     except:
+        shutil.rmtree('graphs')
+        os.mkdir('graphs')
         # os.system('rm -rf dats/*')
         shutil.rmtree('dats')
         os.mkdir('dats')
@@ -82,7 +85,7 @@ if __name__ == "__main__":
     
     start = time.time()
     
-    gen.Generating(ngenerations=50, nchildren=350, sigmacoeff=3, points=2**10, method='log_gaussian', do_plot = True, refx = recoverable_params)
+    gen.Generating(ngenerations=50, nchildren=8, sigmacoeff=3, points=2**7, method='log_gaussian', do_plot = True, refx = recoverable_params)
     
     end = time.time()
     print(f"Время выполнения - {(end-start)/60} min")

@@ -130,4 +130,5 @@ dmypy.json
 
 # other
 /dats
+/graphs
 /new_gen/dats
