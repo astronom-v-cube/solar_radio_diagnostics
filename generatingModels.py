@@ -2,10 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 from tqdm import tqdm
+import corner
 from params import freqs, mfreqs, ParmLocal, Lparms, Rparms, NSteps, Nf, recoverable_params, recoverable_params_indexes, limits_of_gen_ParmLocal, names_of_ParmLocal, reference
 import matplotlib
 from matplotlib.ticker import ScalarFormatter
 matplotlib.rcParams.update({'font.size': 25})
+
+import logging
+logging.basicConfig(filename = 'diagnostics_logs.log',  filemode='a', level = logging.INFO, format = '%(asctime)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+def logprint(msg):
+    print(msg)
+    logging.info(msg)
 
 class generatingModels:
     # calcfunc(x), x=[x0,x1,x2,...,x(dim-1)]
@@ -101,9 +108,9 @@ class generatingModels:
 
     def generate(self, points, method):
 
-        filex = open(f'{self.fname}_gen{self.gen}_x.txt', 'a')
-        filey = open(f'{self.fname}_gen{self.gen}_y.txt', 'a')
-        filer = open(f'{self.fname}_gen{self.gen}_r.txt', 'a')
+        filex = open(f'{self.fname}_gen_{self.gen}_x.txt', 'a')
+        filey = open(f'{self.fname}_gen_{self.gen}_y.txt', 'a')
+        filer = open(f'{self.fname}_gen_{self.gen}_r.txt', 'a')
         
         #while self.x.shape[0] < points:
         # генерация координат
@@ -150,54 +157,54 @@ class generatingModels:
         # создание маски для проверки на nan у функционалов
         mask = ~np.isnan(r)
         # применение маски
-        x = x[mask]
-        y = y[mask]
-        r = r[mask]
+        x, y, r = x[mask], y[mask], r[mask]
 
         # координаты
         np.savetxt(filex, x)
+        filex.close()
         # интенсивности
         np.savetxt(filey, y)
-        # значения функционалов2.87631528
-        np.savetxt(filer, r)
-        filex.close()
         filey.close()
-        filer.close()
-
+        # значения функционалов
+        np.savetxt(filer, r)
+        filer.close() 
+        
     # n - количество точек, находит индексы n минимальных
     def getmins(self, n):
-        r = np.loadtxt(f'{self.fname}_gen{self.gen}_r.txt')
+        r = np.loadtxt(f'{self.fname}_gen_{self.gen}_r.txt')
         return r.argsort()[:n]
     
     def get(self, ax, indexes = None):
         # если индексы не заданы возвращает полностью массив
-        if isinstance(indexes, type(None)): return np.loadtxt(f'{self.fname}_gen{self.gen}_{ax}.txt')
+        if isinstance(indexes, type(None)): return np.loadtxt(f'{self.fname}_gen_{self.gen}_{ax}.txt')
         # если индексы заданы возвращает по ним
-        return np.loadtxt(f'{self.fname}_gen{self.gen}_{ax}.txt')[indexes]
+        return np.loadtxt(f'{self.fname}_gen_{self.gen}_{ax}.txt')[indexes]
     
-    def corner_plot(self, x, r, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
-        if 1:
-            import corner
-            # получение координат истинной точки для отображения
-            truths = []
-            for i in recoverable_params_indexes:
-                truths.append(ParmLocal[i])
-            # получение интервалов генерации точек для отображения
-            ranges = []
-            axes_scales = []
-            for i in recoverable_params_indexes:
-                ranges.append([limits_of_gen_ParmLocal[i][0], limits_of_gen_ParmLocal[i][1]])
-                axes_scales.append(limits_of_gen_ParmLocal[i][2])
-            # получение подписей для графиков
-            titles = []
-            for i in recoverable_params_indexes:
-                titles.append(names_of_ParmLocal[i]) 
-    
-            corner_figure = plt.figure(figsize=(20, 20))
-            corner.corner(data = x, weights = (1/r).ravel(), titles = titles, fig = corner_figure, truths = truths, title_fmt = None, show_titles = True, truth_color = 'red', axes_scale = axes_scales, range=ranges) 
-            corner_figure.tight_layout()
-            # , plot_datapoints=False  
-            corner_figure.savefig(f'corner_plot_{number_of_gen}_gen.png')
+    def corner_plot(self, x, r, number_of_gen):
+        # # получение координат истинной точки для отображения
+        # truths = []
+        # for i in recoverable_params_indexes:
+        #     truths.append(ParmLocal[i])
+        # получение интервалов генерации точек для отображения
+        ranges = []
+        axes_scales = []
+        for i in recoverable_params_indexes:
+            ranges.append([limits_of_gen_ParmLocal[i][0], limits_of_gen_ParmLocal[i][1]])
+            axes_scales.append(limits_of_gen_ParmLocal[i][2])
+            
+        print(axes_scales)
+        # получение подписей для графиков
+        titles = []
+        for i in recoverable_params_indexes:
+            titles.append(names_of_ParmLocal[i]) 
+
+        corner_figure = plt.figure(figsize=(25, 25))
+        print(ranges)
+        corner.corner(data = x, titles = titles, fig = corner_figure, title_fmt = None, show_titles = True, truth_color = 'red', range = ranges) 
+        corner_figure.tight_layout()
+        # , plot_datapoints=False  
+        corner_figure.savefig(f'graphs/corner_plot_{number_of_gen}_gen.png')
+        plt.close()
 
     def plot_error_rate(self, refx, number_of_gen, ngenerations, nchildren, sigmacoeff, points, method):
         # расчет относительной ошибки
@@ -220,6 +227,7 @@ class generatingModels:
         # plt.ylim(1e-4, 1e1)
         plt.tight_layout()
         plt.savefig(f'error_rate_{number_of_gen}_gen_$_freqs = {len(freqs)}_$_ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}, method = {method}.png')
+        plt.close()
 
     def functional_plot(self, functional_array, number_of_gen):
         plt.figure(figsize = (30, 16))
@@ -231,6 +239,7 @@ class generatingModels:
         plt.ylabel("Значение функционала", fontsize=32)
         plt.tight_layout()
         plt.savefig(f'graphs/functional_plot_{number_of_gen}.png')
+        plt.close()
 
     def plot_spectrum(self, L, R, number_of_gen):
         # подсчет спектра по модели
@@ -258,6 +267,7 @@ class generatingModels:
         axs[1].legend(fontsize=18, ncol=3)
         plt.tight_layout()
         plt.savefig(f'graphs/RL_spectrum_{number_of_gen}_gen.png')
+        plt.close()
         
         reference_intensity = reference_spectrum[0::2] + reference_spectrum[1::2]
         fig2, ax = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(15, 15))
@@ -273,6 +283,7 @@ class generatingModels:
         ax.legend(fontsize=18, ncol=2)
         plt.tight_layout()
         plt.savefig(f'graphs/I_spectrum_{number_of_gen}_gen.png')
+        plt.close()
         
     def analise_plot(self, functional, params, number_of_gen, gen_points = None):
         functional = np.array(functional)
@@ -285,27 +296,25 @@ class generatingModels:
 
         params = params[:num_points]
         functional = functional[:num_points]
-
         # Получение количества подэлементов в каждом элементе params
         num_subplots = len(params[0])
 
         # Вычисление количества строк и столбцов в субплотах
-        num_cols = min(num_subplots, 4)  # Максимальное количество столбцов (в данном случае 3)
+        num_cols = min(num_subplots, 4)  # Максимальное количество столбцов 
         num_rows = -(-num_subplots // num_cols)  # Округление вверх для количества строк
 
         # Создание субплотов в виде решетки
-        fig, axs = plt.subplots(num_rows, num_cols, figsize=(36, 9*num_rows))
+        fig, axs = plt.subplots(num_rows, num_cols, figsize=(25, 5*num_rows))
 
         # Построение графиков для каждого подэлемента в params
         for i, ax in enumerate(axs.flat):
             if i < num_subplots:
                 # График значения величины из params
-                ax.plot(params[:, i], label=f'Param {i+1}', color = 'k', linewidth = 3)
-                ax.set_ylabel(f'Param {i+1}')
+                ax.plot(params[:, i], color = 'k', linewidth = 3)
+                ax.set_ylabel(names_of_ParmLocal[recoverable_params_indexes[i]])
 
                 # Создание второй координатной сетки для functional
                 ax2 = ax.twinx()
-
                 # График из functional
                 ax2.plot(functional, color='r', label='Functional', linewidth = 3)
                 ax2.set_ylabel('Functional', color='r')
@@ -314,6 +323,7 @@ class generatingModels:
         # Сохранение графиков
         plt.tight_layout()
         plt.savefig(f'graphs/analise_graph_{number_of_gen}_gen.png')
+        plt.close()
     
     ######################################
     # функция генерации
@@ -328,16 +338,21 @@ class generatingModels:
         # если еще нету нулевого поколения - генерируем точки и значения к ним
         if not self.gen:
             self.x0s.append(self.x0)
-            self.generate(points * nchildren * 10, method)
+            self.generate(points * nchildren * 1, method)
             try:
                 self.corner_plot(self.x, self.r, 0)
-            except: 
-                print('Ошибка построения corner')
+            except Exception as err: 
+                logprint(f'Ошибка построения corner: {err}')
             y_min = self.get('y', self.getmins(1))[0]
             spectrum_L.append(y_min[:Nf])
             spectrum_R.append(y_min[Nf:])
             self.plot_spectrum(spectrum_L, spectrum_R, self.gen)
+            
+            best = self.get('x', self.getmins(1))[0]
+            logprint(best)
+            array_rec_params.append(best)
             functional_array.append(self.get('r', self.getmins(1)))
+            self.analise_plot(functional_array, array_rec_params, self.gen)
             
         # переменная счетчик
         gen = self.gen
@@ -387,15 +402,15 @@ class generatingModels:
                 self.generate(points, method = 'old_gaussian')
             try:
                 self.corner_plot(self.x, self.r, self.gen)
-            except: 
-                print('Ошибка построения corner')
-
-            functional_array.append(self.get('r', self.getmins(1)))
+            except Exception as err: 
+                logprint(f'Ошибка построения corner: {err}')
 
             # пишем что лучшее вышло на текущем шаге
             best = self.get('x', self.getmins(1))[0]
-            print(best)
+            logprint(best)
             array_rec_params.append(best)
+            functional_array.append(self.get('r', self.getmins(1)))
+            self.analise_plot(functional_array, array_rec_params, self.gen)
 
             # сохраняем информацию о восстановленном спектре для анализа
             y_min = self.get('y', self.getmins(1))[0]
@@ -408,14 +423,16 @@ class generatingModels:
             
             # небольшая передышка
             time.sleep(1)
+            end = time.time()
+            logprint(f"Время поколения - {(end-start)/60} min")
 
         # результат для последнего поколения        
         self.x0 = self.get('x', self.getmins(1))[0]
         self.x0s.append(self.x0)
 
         # пишем лучшее, что получилось
-        print(self.x0)
-        print(f'ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}')
+        logprint(self.x0)
+        logprint(f'ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}')
 
         # рисуем график
         # if do_plot: 
@@ -423,6 +440,5 @@ class generatingModels:
             # self.functional_plot(functional_array, ngenerations, ngenerations, nchildren, sigmacoeff, points, method)
         # plt.show()
         
-        end = time.time()
-        print(f"Время поколения - {(end-start)/60} min")
+        
                 
