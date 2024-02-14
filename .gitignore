@@ -132,3 +132,4 @@ dmypy.json
 /dats
 /graphs
 /new_gen/dats
+*.npz

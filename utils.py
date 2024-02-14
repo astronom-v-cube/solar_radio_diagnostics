@@ -1,6 +1,6 @@
 import numpy as np
-from gyrosynchrotron import GScodes
-from params import libname
+from gyrosynchrotron.examples import GScodes
+from params import libname, freqs, LLL, RRR
 
 # функция подсчета левой и правой интенсивности на всех частотах
 def Calc_I(prs, prs_indexes):
@@ -31,10 +31,10 @@ def functional(RI, LI, Irefrl): # I1L, I1R, I2L, I2R
     # V = Irl[:,0::2] - Irl[:,1::2]
     Iref = Irefrl[0::2] + Irefrl[1::2]
     Vref = Irefrl[1::2] - Irefrl[0::2]
-    # return np.sqrt(((I-Iref)**2 + (V-Vref)**2).sum(1))
+    return np.sqrt(((I-Iref)**2 + (V-Vref)**2).sum(1))
 
     # это без учета поляризации
-    return np.sqrt(((I-Iref)**2).sum(1))
+    # return np.sqrt(((I-Iref)**2).sum(1))
 
 # новый иррациональный функционал
 def functional_irrational(RI, LI, Irefrl): # I1L, I1R, I2L, I2R
@@ -45,25 +45,29 @@ def functional_irrational(RI, LI, Irefrl): # I1L, I1R, I2L, I2R
 if __name__ == "__main__":
 
     import matplotlib.pyplot as plt
-    from params import mfreqs, recoverable_params_indexes, recoverable_params, recoverable_params_analise
+    from params import space_freqs, recoverable_params_indexes, recoverable_params, recoverable_params_analise
     import matplotlib
     matplotlib.rcParams.update({'font.size': 18})
     
     IL, IR = Calc_I(recoverable_params, recoverable_params_indexes)
+    print(", ".join(IL.astype(str)))
+    print(", ".join(IR.astype(str)))
     IL1, IR1 = Calc_I(recoverable_params_analise, recoverable_params_indexes)
     
     plt.figure()
-    plt.plot(mfreqs, IL, '--', label = 'L', linewidth = 4)
-    plt.plot(mfreqs, IR, '--', label = 'R', linewidth = 4)
-    plt.plot(mfreqs, IL1, label = 'L сдвиг', linewidth = 4)
-    plt.plot(mfreqs, IR1, label = 'R сдвиг', linewidth = 4)
+    plt.plot(space_freqs, IL, label = 'L', linewidth = 4)
+    plt.plot(space_freqs, IR, label = 'R', linewidth = 4)
+    plt.plot(space_freqs, IL1, '--', label = 'L со сдвигом', linewidth = 4)
+    plt.plot(space_freqs, IR1, '--', label = 'R со сдвигом', linewidth = 4)
+    plt.plot(freqs, LLL, 'D')
+    plt.plot(freqs, RRR, 'D')
     plt.grid(True, which="both", linestyle='--')
     plt.legend()
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlim(2.8e9, 11.8e9)
+    plt.xlim(2.8e9, 23.8e9)
     # plt.ylim(5, 30)
     plt.xlabel('Frequency, GHz')
     plt.ylabel('Intensity')
-    plt.tight_layout()
+    # plt.tight_layout()
     plt.show()

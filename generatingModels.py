@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import time
 from tqdm import tqdm
 import corner
-from params import freqs, mfreqs, ParmLocal, Lparms, Rparms, NSteps, Nf, recoverable_params, recoverable_params_indexes, limits_of_gen_ParmLocal, names_of_ParmLocal, reference
+from params import freqs, space_freqs, ParmLocal, Lparms, Rparms, NSteps, Nf, recoverable_params, recoverable_params_indexes, limits_of_gen_ParmLocal, names_of_ParmLocal, reference
 import matplotlib
 from matplotlib.ticker import ScalarFormatter
 matplotlib.rcParams.update({'font.size': 25})
@@ -147,6 +147,13 @@ class generatingModels:
         # удаление из массива точек с отрицательными координатами
         x = x[mask]
         self.x = x
+        
+        # чистка угла
+        mask = x[:, 3] < 180
+        x = x[mask]
+        
+        self.x = x
+        
         # транспонируем - так удобнее
         y = self.func(x.T)
         self.y = y
@@ -249,9 +256,9 @@ class generatingModels:
         axs[0].grid(True, which="both", linestyle='--')
         axs[1].grid(True, which="both", linestyle='--')
         for i, intensivity_L in enumerate(L):
-            axs[0].plot(mfreqs/1e9, intensivity_L, label = f"Поколение {i+1}", linewidth = 0.75*(i+1))
+            axs[0].plot(space_freqs/1e9, intensivity_L, label = f"Поколение {i+1}", linewidth = 0.75*(i+1))
         for i, intensivity_R in enumerate(R):
-            axs[1].plot(mfreqs/1e9, intensivity_R, label = f"Поколение {i+1}", linewidth = 0.75*(i+1))
+            axs[1].plot(space_freqs/1e9, intensivity_R, label = f"Поколение {i+1}", linewidth = 0.75*(i+1))
         axs[0].plot(freqs/1e9, reference_spectrum[0::2],'D', label = f"Реальный спектр", linewidth = 8, color = 'darkblue', markersize=14)
         axs[1].plot(freqs/1e9, reference_spectrum[1::2],'D', label = f"Реальный спектр", linewidth = 8, color = 'darkblue', markersize=14)
         axs[0].set_xlabel("Частота, ГГц", fontsize=32)
@@ -273,7 +280,7 @@ class generatingModels:
         fig2, ax = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(15, 15))
         ax.grid(True, which="both", linestyle='--')
         for i, intensivity_L in enumerate(L):
-            ax.plot(mfreqs/1e9, L[i] + R[i], label = f"Поколение {i+1}", linewidth = 0.75*(i+1))
+            ax.plot(space_freqs/1e9, L[i] + R[i], label = f"Поколение {i+1}", linewidth = 0.75*(i+1))
         ax.plot(freqs/1e9, reference_intensity, 'D', label = f"Реальный спектр", linewidth = 8, color = 'darkblue', markersize=14)
         ax.set_xlabel("Частота, ГГц", fontsize=32)
         ax.set_title("Частотный спектр интенсивности излучения", fontsize=32)
@@ -338,7 +345,7 @@ class generatingModels:
         # если еще нету нулевого поколения - генерируем точки и значения к ним
         if not self.gen:
             self.x0s.append(self.x0)
-            self.generate(points * nchildren * 1, method)
+            self.generate(points * nchildren * 10, method)
             try:
                 self.corner_plot(self.x, self.r, 0)
             except Exception as err: 
@@ -349,7 +356,7 @@ class generatingModels:
             self.plot_spectrum(spectrum_L, spectrum_R, self.gen)
             
             best = self.get('x', self.getmins(1))[0]
-            logprint(best)
+            logprint([", ".join(best.astype(str))])
             array_rec_params.append(best)
             functional_array.append(self.get('r', self.getmins(1)))
             self.analise_plot(functional_array, array_rec_params, self.gen)
@@ -407,7 +414,7 @@ class generatingModels:
 
             # пишем что лучшее вышло на текущем шаге
             best = self.get('x', self.getmins(1))[0]
-            logprint(best)
+            logprint([", ".join(best.astype(str))])
             array_rec_params.append(best)
             functional_array.append(self.get('r', self.getmins(1)))
             self.analise_plot(functional_array, array_rec_params, self.gen)
@@ -431,7 +438,7 @@ class generatingModels:
         self.x0s.append(self.x0)
 
         # пишем лучшее, что получилось
-        logprint(self.x0)
+        logprint([", ".join(self.x0.astype(str))])
         logprint(f'ngenerations = {ngenerations}, nchildren = {nchildren}, sigmacoeff = {sigmacoeff}, point = {points}')
 
         # рисуем график
