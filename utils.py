@@ -20,7 +20,7 @@ def Calc_I(prs, prs_indexes):
 
     GET_MW(Lparms, Rparms, Parms, dummy, dummy, dummy, RL)
 
-    return RL[5:]
+    return RL[0, :], RL[5:]
 
 # функционал из работы А. Моргачева
 # тут порядок поляризаций надо проверять
@@ -49,23 +49,27 @@ if __name__ == "__main__":
     import matplotlib
     matplotlib.rcParams.update({'font.size': 18})
     
-    IL, IR = Calc_I(recoverable_params, recoverable_params_indexes)
+    FREQ, (IL, IR) = Calc_I(recoverable_params, recoverable_params_indexes)
+    print('*****')
+    print(", ".join(FREQ.astype(str)))
+    print('*****')
     print(", ".join(IL.astype(str)))
+    print('*****')
     print(", ".join(IR.astype(str)))
-    IL1, IR1 = Calc_I(recoverable_params_analise, recoverable_params_indexes)
+    FREQ1, (IL1, IR1) = Calc_I(recoverable_params_analise, recoverable_params_indexes)
     
     plt.figure()
-    plt.plot(space_freqs, IL, label = 'L', linewidth = 4)
-    plt.plot(space_freqs, IR, label = 'R', linewidth = 4)
-    plt.plot(space_freqs, IL1, '--', label = 'L со сдвигом', linewidth = 4)
-    plt.plot(space_freqs, IR1, '--', label = 'R со сдвигом', linewidth = 4)
-    plt.plot(freqs, LLL, 'D')
-    plt.plot(freqs, RRR, 'D')
+    plt.plot(FREQ, IL, label = 'L', linewidth = 4)
+    plt.plot(FREQ, IR, label = 'R', linewidth = 4)
+    plt.plot(FREQ1, IL1, '--', label = 'L со сдвигом', linewidth = 4)
+    plt.plot(FREQ1, IR1, '--', label = 'R со сдвигом', linewidth = 4)
+    # plt.plot(freqs, LLL, 'D')
+    # plt.plot(freqs, RRR, 'D')
     plt.grid(True, which="both", linestyle='--')
     plt.legend()
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlim(2.8e9, 23.8e9)
+    plt.xlim(2.8, 23.8)
     # plt.ylim(5, 30)
     plt.xlabel('Frequency, GHz')
     plt.ylabel('Intensity')

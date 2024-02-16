@@ -13,13 +13,13 @@ import time
 def func(prs):
     y = np.zeros((prs.shape[1], len(freqs)*2))
     for i in range(prs.shape[1]):
-        y[i] = Calc_I(prs, recoverable_params_indexes).ravel()
+        libs_freqs, y[i] = Calc_I(prs, recoverable_params_indexes).ravel()
     return y
 
 def sub(prs, i):
     # n_b = prs[3] / 0.03 ** (prs[4] - 1)
     # prs[3] = n_b
-    return Calc_I(prs, recoverable_params_indexes).ravel(), i
+    return Calc_I(prs, recoverable_params_indexes)[1].ravel(), i
 
 # функция для многопоточной работы
 def func_multythread(prs):
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     
     start = time.time()
     
-    gen.Generating(ngenerations=50, nchildren=150, sigmacoeff=3, points=2**10, method='log_gaussian', do_plot = True, refx = recoverable_params)
+    gen.Generating(ngenerations=50, nchildren=100, sigmacoeff=3, points=2**10, method='log_gaussian', do_plot = True, refx = recoverable_params)
     
     end = time.time()
     print(f"Время выполнения - {(end-start)/60} min")
