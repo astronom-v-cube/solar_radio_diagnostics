@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import time
+import time, os, shutil
 from tqdm import tqdm
 import corner
 from params import freqs, space_freqs, ParmLocal, Lparms, Rparms, NSteps, Nf, recoverable_params, recoverable_params_indexes, limits_of_gen_ParmLocal, names_of_ParmLocal, reference
@@ -151,7 +151,6 @@ class generatingModels:
         # чистка угла
         mask = x[:, 3] < 180
         x = x[mask]
-        
         self.x = x
         
         # транспонируем - так удобнее
@@ -163,6 +162,7 @@ class generatingModels:
 
         # создание маски для проверки на nan у функционалов
         mask = ~np.isnan(r)
+        
         # применение маски
         x, y, r = x[mask], y[mask], r[mask]
 
@@ -335,15 +335,37 @@ class generatingModels:
     ######################################
     # функция генерации
     # (количество поколений, количество потомков, коэфиициент изменения ширины генерации, количество точек на ребенка)
-    def Generating(self, ngenerations, nchildren, sigmacoeff, points, method, do_plot = False, refx = None):
+    def Generating(self, ngenerations, nchildren, sigmacoeff, points, method, do_plot = False, continuation = False, continuation_gen = None, refx = None):
         
         spectrum_L, spectrum_R = [], []
         # массив хранения функционалов
         functional_array = [] 
         array_rec_params = []
+        
+        if continuation == True:
+            backup = np.load('diagnostic_backup.npz')
+            functional_array = list(backup['functional'])
+            spectrum_L, spectrum_R = list(backup['spectrum_L']), list(backup['spectrum_R'])
+            array_rec_params = list(backup['params'])
+            if continuation_gen != None:
+                self.gen = continuation_gen
+            else:
+                self.gen = backup['ngens']
 
-        # если еще нету нулевого поколения - генерируем точки и значения к ним
+        # если еще нету нулевого поколения - генерируем точки и значения к ним        
         if not self.gen:
+            
+            # удаляем все остатки с прошлого раза, если они есть
+            try:
+                os.mkdir('dats')
+                os.mkdir('graphs')
+            except:
+                shutil.rmtree('graphs')
+                os.mkdir('graphs')
+                # os.system('rm -rf dats/*')
+                shutil.rmtree('dats')
+                os.mkdir('dats')
+            
             self.x0s.append(self.x0)
             self.generate(points * nchildren * 10, method)
             try:

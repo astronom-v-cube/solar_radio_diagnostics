@@ -44,17 +44,6 @@ def minimizer(y):
     # return functional(RIs, LIs, reference)
 
 if __name__ == "__main__":
-
-    # удаляем все остатки с прошлого раза, если они есть
-    try:
-        os.mkdir('dats')
-        os.mkdir('graphs')
-    except:
-        shutil.rmtree('graphs')
-        os.mkdir('graphs')
-        # os.system('rm -rf dats/*')
-        shutil.rmtree('dats')
-        os.mkdir('dats')
     
     # привязка к количеству точек
     n = len(recoverable_params_indexes)
@@ -62,14 +51,14 @@ if __name__ == "__main__":
     
     # начальная (центральная) точка генерации (параметры указываются по порядку)
     try:
-        gen.x0[0]=1e7
-        gen.x0[1]=1e10
-        gen.x0[2]=350
-        gen.x0[3]=85
-        gen.x0[4]=8e6
-        gen.x0[5]=0.3
-        gen.x0[6]=4
-        gen.x0[7]=8
+        gen.x0[0]=5e7
+        gen.x0[1]=1e9
+        gen.x0[2]=300
+        gen.x0[3]=50
+        gen.x0[4]=4e7
+        gen.x0[5]=0.4
+        gen.x0[6]=5
+        gen.x0[7]=6
         
         # gen.x0[0]=4.68e+07
         # gen.x0[1]=2.5e+9
@@ -87,7 +76,7 @@ if __name__ == "__main__":
     
     start = time.time()
     
-    gen.Generating(ngenerations=50, nchildren=100, sigmacoeff=3, points=2**10, method='log_gaussian', do_plot = True, refx = recoverable_params)
+    gen.Generating(ngenerations=500, nchildren=150, sigmacoeff=3, points=2**10, method='log_gaussian', do_plot = True, refx = recoverable_params, continuation = False, continuation_gen = 0)
     
     end = time.time()
     print(f"Время выполнения - {(end-start)/60} min")
