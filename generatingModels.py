@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import time, os, shutil
 from tqdm import tqdm
 import corner
-from params import freqs, space_freqs, ParmLocal, Lparms, Rparms, NSteps, Nf, recoverable_params, recoverable_params_indexes, limits_of_gen_ParmLocal, names_of_ParmLocal, reference
+from params import freqs, space_freqs, ParmLocal, Lparms, Rparms, NSteps, Nf, recoverable_params_350, recoverable_params_indexes, limits_of_gen_ParmLocal, names_of_ParmLocal, reference
 import matplotlib
 from matplotlib.ticker import ScalarFormatter
 matplotlib.rcParams.update({'font.size': 25})
