@@ -263,9 +263,9 @@ class generatingModels:
         axs[0].grid(True, which="both", linestyle='--')
         axs[1].grid(True, which="both", linestyle='--')
         for i, intensivity_L in enumerate(L):
-            axs[0].plot(space_freqs/1e9, intensivity_L, label = f"Поколение {i+1}", linewidth = min(0.75 + 0.25 * i, 15))
+            axs[0].plot(space_freqs/1e9, intensivity_L, label = f"Поколение {i+1}", linewidth = np.linspace(1, 14, len(intensivity_L))[i])
         for i, intensivity_R in enumerate(R):
-            axs[1].plot(space_freqs/1e9, intensivity_R, label = f"Поколение {i+1}", linewidth = min(0.75 + 0.25 * i, 15))
+            axs[1].plot(space_freqs/1e9, intensivity_R, label = f"Поколение {i+1}", linewidth = np.linspace(1, 14, len(intensivity_R))[i])
         axs[0].plot(freqs/1e9, reference_spectrum[0::2],'D', label = f"Реальный спектр", linewidth = 8, color = 'darkblue', markersize=14)
         axs[1].plot(freqs/1e9, reference_spectrum[1::2],'D', label = f"Реальный спектр", linewidth = 8, color = 'darkblue', markersize=14)
         axs[0].set_xlabel("Частота, ГГц", fontsize=32)
@@ -287,7 +287,7 @@ class generatingModels:
         fig2, ax = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(15, 15))
         ax.grid(True, which="both", linestyle='--')
         for i, intensivity_L in enumerate(L):
-            ax.plot(space_freqs/1e9, L[i] + R[i], label = f"Поколение {i+1}", linewidth = min(0.75 - 0.25 * i, 15))
+            ax.plot(space_freqs/1e9, L[i] + R[i], label = f"Поколение {i+1}", linewidth = np.linspace(1, 14, len(intensivity_L))[i])
         ax.plot(freqs/1e9, reference_intensity, 'D', label = f"Реальный спектр", linewidth = 8, color = 'darkblue', markersize=14)
         ax.set_xlabel("Частота, ГГц", fontsize=32)
         ax.set_title("Частотный спектр интенсивности излучения", fontsize=32)
