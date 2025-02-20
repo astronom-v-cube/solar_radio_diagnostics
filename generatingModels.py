@@ -33,14 +33,14 @@ class generatingModels:
         self.gen = 0
         # массив для хранения найденных значений
         self.x0s = []
-        self.x = np.zeros((0, dimensions))
+        self.x = np.zeros((0, dimensions)).astype(np.float32)
 
 ###################
 # реализация гененирования чисто int чисел не доделана!!!!!!!!!!!! КОСТЫЛЬ
     def float_and_int_generation(self, points, desc, method):
 
         if method=='old_gaussian':
-            x = np.random.normal(self.x0, self.sigma, (points, self.ndim))
+            x = np.random.normal(self.x0, self.sigma, (points, self.ndim)).astype(np.float32)
 
         elif method=='log_gaussian':
         # Создаем логарифмические распределения по нужным осям
@@ -48,21 +48,21 @@ class generatingModels:
             for i, index in enumerate(recoverable_params_indexes):
                 if index in [2, 7]:
                     # Создаем логнормальное распределение
-                    dist = np.random.lognormal(mean=np.log(self.x0[i]), sigma=np.log(self.sigma[i]), size=points)
+                    dist = np.random.lognormal(mean=np.log(self.x0[i]), sigma=np.log(self.sigma[i]), size=points).astype(np.float32)
                 else:
                     # Создаем нормальное распределение
-                    dist = np.random.normal(self.x0[i], self.sigma[i], size=points)
+                    dist = np.random.normal(self.x0[i], self.sigma[i], size=points).astype(np.float32)
                 dist_lognorm.append(dist)
 
             # Объединяем все распределения в один
-            x = np.column_stack(dist_lognorm)
+            x = np.column_stack(dist_lognorm).astype(np.float32)
             # first_vals = x[:, 0]
             # plt.hist(first_vals, bins=2048, log=True, range=(0,1e10))
             # plt.show()
 
         elif method=='gaussian':
             # (начальная точка, ширина, (количество точек, размерность))
-            x = np.random.normal(self.x0, self.sigma, (points, self.ndim))
+            x = np.random.normal(self.x0, self.sigma, (points, self.ndim)).astype(np.float32)
             # чтобы генерация была в нужной области и не было 3к градусов сжимаем полученный гаусс до пределов генерации
             for i, index in enumerate(recoverable_params_indexes):
                 a = limits_of_gen_ParmLocal[index][0]
@@ -71,21 +71,21 @@ class generatingModels:
 
         elif method == 'random':
             # (точка слева, точка справа, (количество точек, размерность))
-            x = np.random.uniform(self.x0 - self.sigma, self.x0 + self.sigma, (points, self.ndim))
+            x = np.random.uniform(self.x0 - self.sigma, self.x0 + self.sigma, (points, self.ndim)).astype(np.float32)
 
         elif method=='new_random_first_gen':
             x = []
             # для всех точек по их количеству
             for i in tqdm(range(points), desc=desc):
                 # массив второго уровня хранящий одну точку
-                one_point = np.zeros(len(recoverable_params_indexes))
+                one_point = np.zeros(len(recoverable_params_indexes)).astype(np.float32)
                 # проходимся по индексам и берем границы генерации
                 for k, index in enumerate(recoverable_params_indexes):
                     if index in []:
                         if index == 12:
-                            one_point[k] = np.random.randint(2, 8)
+                            one_point[k] = np.random.randint(2, 8).astype(np.float32)
                     else:
-                        one_point[k] = np.random.uniform(limits_of_gen_ParmLocal[index][0], limits_of_gen_ParmLocal[index][1])
+                        one_point[k] = np.random.uniform(limits_of_gen_ParmLocal[index][0], limits_of_gen_ParmLocal[index][1]).astype(np.float32)
                 x.append(one_point)
 
         # elif method=='log_new_random_first_gen':
@@ -161,10 +161,10 @@ class generatingModels:
         self.x = x
 
         # транспонируем - так удобнее
-        y = self.func(x.T)
+        y = self.func(x.T).astype(np.float32)
         self.y = y
         # расчет отклонения от истинных параметров - функционал
-        r = self.minif(y)
+        r = self.minif(y).astype(np.float32)
         self.r = r
 
         # создание маски для проверки на nan у функционалов
@@ -185,14 +185,14 @@ class generatingModels:
 
     # n - количество точек, находит индексы n минимальных
     def getmins(self, n):
-        r = np.loadtxt(f'{self.fname}_gen_{self.gen}_r.txt')
+        r = np.loadtxt(f'{self.fname}_gen_{self.gen}_r.txt').astype(np.float32)
         return r.argsort()[:n]
 
     def get(self, ax, indexes = None):
         # если индексы не заданы возвращает полностью массив
         if isinstance(indexes, type(None)): return np.loadtxt(f'{self.fname}_gen_{self.gen}_{ax}.txt')
         # если индексы заданы возвращает по ним
-        return np.loadtxt(f'{self.fname}_gen_{self.gen}_{ax}.txt')[indexes]
+        return np.loadtxt(f'{self.fname}_gen_{self.gen}_{ax}.txt')[indexes].astype(np.float32)
 
     def corner_plot(self, x, r, number_of_gen):
         # # получение координат истинной точки для отображения
@@ -206,14 +206,12 @@ class generatingModels:
             ranges.append([limits_of_gen_ParmLocal[i][0], limits_of_gen_ParmLocal[i][1]])
             axes_scales.append(limits_of_gen_ParmLocal[i][2])
 
-        print(axes_scales)
         # получение подписей для графиков
         titles = []
         for i in recoverable_params_indexes:
             titles.append(names_of_ParmLocal[i])
 
         corner_figure = plt.figure(figsize=(25, 25))
-        print(ranges)
         corner.corner(data = x, titles = titles, fig = corner_figure, title_fmt = None, show_titles = True, truth_color = 'red', range = ranges)
         corner_figure.tight_layout()
         # , plot_datapoints=False
@@ -300,8 +298,8 @@ class generatingModels:
         plt.close()
 
     def analise_plot(self, functional, params, number_of_gen, gen_points = None):
-        functional = np.array(functional)
-        params = np.array(params)
+        functional = np.array(functional).astype(np.float32)
+        params = np.array(params).astype(np.float32)
         # Ограничение количества отображаемых точек
         if gen_points == None:
             num_points = len(functional)
@@ -400,7 +398,7 @@ class generatingModels:
 
             start = time.time()
 
-            self.x = np.zeros((0, self.ndim))
+            self.x = np.zeros((0, self.ndim)).astype(np.float32)
             # imins - массив индексов детей по возрастанию
             imins = self.getmins(nchildren)
             # все координаты в прошлой генерации
@@ -409,7 +407,7 @@ class generatingModels:
             xmins = all_x[imins]
             # генерация облака в зависимости от окружающих точек
             # deltas - относительный сдвиг до ближайшей точки для каждого потомка, вектор с началом в одной точке и концом в другой
-            deltas = np.zeros((nchildren, self.ndim))
+            deltas = np.zeros((nchildren, self.ndim)).astype(np.float32)
             for i, x in enumerate(xmins):
                 # считаем относительное положение (по модулю) ближайших к минимуму точек
                 xr = (((all_x - x) / self.sigma) ** 2).sum(1)
