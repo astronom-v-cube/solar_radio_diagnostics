@@ -45,10 +45,19 @@ class generatingModels:
         elif method=='log_gaussian':
         # Создаем логарифмические распределения по нужным осям
             dist_lognorm = []
-            for i, index in enumerate(recoverable_params_indexes):
+            for i, index in (enumerate(recoverable_params_indexes)):
                 if index in [2, 7]:
+                    while True:  # Бесконечный цикл
+                        try:
+                            # Попытка сгенерировать логнормальное распределение
+                            dist = np.random.lognormal(mean=np.log(self.x0[i]), sigma=np.log(self.sigma[i]), size=points).astype(np.float32)
+                            break
+                        except (RuntimeWarning, ValueError) as e:
+                            logging.INFO(f"Ошибка: {e}. Повторная попытка...")
+                            logging.INFO(self.sigma[i])
+                            self.sigma[i] = self.sigma[i] * 0.9
                     # Создаем логнормальное распределение
-                    dist = np.random.lognormal(mean=np.log(self.x0[i]), sigma=np.log(self.sigma[i]), size=points).astype(np.float32)
+                    # dist = np.random.lognormal(mean=np.log(self.x0[i]), sigma=np.log(self.sigma[i]), size=points).astype(np.float32)
                 else:
                     # Создаем нормальное распределение
                     dist = np.random.normal(self.x0[i], self.sigma[i], size=points).astype(np.float32)
@@ -372,7 +381,7 @@ class generatingModels:
                 os.mkdir('dats')
 
             self.x0s.append(self.x0)
-            self.generate(points * nchildren * 25, method, remove_lag)
+            self.generate(points * nchildren * 30, method, remove_lag)
             try:
                 self.corner_plot(self.x, self.r, 0)
             except Exception as err:
@@ -407,7 +416,7 @@ class generatingModels:
             xmins = all_x[imins]
             # генерация облака в зависимости от окружающих точек
             # deltas - относительный сдвиг до ближайшей точки для каждого потомка, вектор с началом в одной точке и концом в другой
-            deltas = np.zeros((nchildren, self.ndim)).astype(np.float32)
+            deltas = np.zeros((nchildren, self.ndim))
             for i, x in enumerate(xmins):
                 # считаем относительное положение (по модулю) ближайших к минимуму точек
                 xr = (((all_x - x) / self.sigma) ** 2).sum(1)
@@ -415,7 +424,7 @@ class generatingModels:
                 deltas[i] = np.abs(all_x[xr.argsort()[1]]-x)
 
             #если типо сошелся то вызываем исключение, ибо нефиг)
-            1/int(deltas[0,0])
+            # 1/int(deltas[0,0])
 
             # если включена отрисовка графика и есть более двух точек - рисуем
             if do_plot:
@@ -430,8 +439,8 @@ class generatingModels:
             self.sigma = deltas.mean(0)*sigmacoeff
 
             # генерация "социума" ребенка
-            for i, x in enumerate(xmins):
-                print(f'{self.gen} gen, {i + 1} chld')
+            for i, x in tqdm(enumerate(xmins), desc='child'):
+                # print(f'{self.gen} gen, {i + 1} chld')
                 self.x0 = x
                 self.generate(points, method, remove_lag)
             try:
